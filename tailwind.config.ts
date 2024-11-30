@@ -9,8 +9,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        green: "#009963",
+        beige: "#F5F0E5",
+        searchBeige: "#A1824A",
+        productNameColor: "#1C170D",
+        hoverColor: "#FFCF65",
+        greenText: '#4F966E',
+        greenComponent: '#009963',
+        newgreen:'#47663B',
+        newgreensecond: '#1F4529',
+        cream: '#E8ECD7',
+        newbeige: "#EED3B1",
+        lightgreen: '#70BD84'
+
+      },
+      fontFamily: {
+        jakarta: ['"Plus Jakarta Sans"', "sans-serif"],
       },
     },
   },
