@@ -41,7 +41,7 @@ const Hero: React.FC = () => {
   return (
     <section className="relative bg-white overflow-hidden">
       {/* Outer container with responsive height */}
-      <div className="relative overflow-hidden h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] shadow-md">
+      <div className="relative overflow-hidden h-[150px] sm:h-[200px] md:h-[250px] lg:h-[400px] shadow-md">
         {/* Carousel Images */}
         {images.map((image, index) => (
           <div

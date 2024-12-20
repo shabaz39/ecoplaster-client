@@ -20,7 +20,7 @@ const AnnouncementBanner: React.FC = () => {
   }, [announcements.length]);
 
   return (
-    <div className="bg-black text-white py-2 px-3 overflow-hidden w-full">
+    <div className="bg-black text-white py-1 px-3 overflow-hidden w-full">
       <div className="relative h-[2.5rem] overflow-hidden flex items-center justify-center">
         <div
           className="absolute w-full text-center transition-transform duration-700 ease-in-out"

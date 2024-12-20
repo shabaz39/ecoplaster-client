@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin"; // Import the `plugin` function
+
 
 export default {
   content: [
@@ -28,5 +30,27 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar'),
+    plugin(function ({ addUtilities  }) {
+      addUtilities({
+        '.scrollbar-thin': {
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+        },
+        '.scrollbar-thumb-green-500': {
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#22c55e',
+            borderRadius: '9999px',
+          },
+        },
+        '.scrollbar-track-gray-800': {
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: '#1f2937',
+          },
+        },
+      });
+    }),
+  ],
 } satisfies Config;

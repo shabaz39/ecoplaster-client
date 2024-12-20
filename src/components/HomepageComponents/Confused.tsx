@@ -30,7 +30,7 @@ const BannerWithModal: React.FC = () => {
           <img
             src="/confused.jpg"
             alt="Confused"
-            className="w-48 sm:w-4 rounded-md"
+            className="w-64 sm:w-60 rounded-md"
           />
         </div>
       </div>

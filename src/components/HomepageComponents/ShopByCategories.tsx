@@ -32,7 +32,13 @@ const CategoriesSection: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-beige to-white py-8 px-4 sm:px-8 lg:px-64">
+    <div className="relative py-8 px-4 sm:px-8 lg:px-64"
+    
+    style={{
+        background: `linear-gradient(to bottom, transparent 0%, #F5F0E5 30%, #F5F0E5 70%, transparent 100%)`,
+      }}
+    
+    >
       {/* Heading */}
       <h2 className="text-center  text-2xl sm:text-3xl font-bold py-6 text-gray-800">
         Shop By Categories
