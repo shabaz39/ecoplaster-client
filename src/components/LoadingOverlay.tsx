@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Loader,
   ShieldCheck,
   Truck,
   Wrench,
@@ -25,7 +24,7 @@ const LoadingOverlay: React.FC = () => {
   // Randomize icons every 500ms
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveIcon(Math.floor(Math.random() * icons.length));
+      setActiveIcon((prev) => (prev + 1) % icons.length);
     }, 500);
 
     return () => clearInterval(interval);
@@ -41,10 +40,10 @@ const LoadingOverlay: React.FC = () => {
     >
       <motion.div
         key={activeIcon}
-        initial={{ scale: 0, rotate: 0 }}
-        animate={{ scale: 1, rotate: 360 }}
-        exit={{ scale: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
         className="flex flex-col items-center justify-center"
       >
         {icons[activeIcon]}

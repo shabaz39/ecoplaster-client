@@ -1,46 +1,118 @@
-"use client";
+"use client"
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@apollo/client';
+import { getAllAnnouncement } from '@/constants/queries/getAllAnnouncementsQuery';
 
-import React, { useState, useEffect } from "react";
+interface Announcement {
+  id: string;
+  message: string;
+}
 
-const AnnouncementBanner: React.FC = () => {
-  const announcements = [
+const AnnouncementBanner = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const { data, loading, error } = useQuery(getAllAnnouncement, {
+    variables: { limit: 3 },
+    fetchPolicy: 'cache-first',
+    // Add these options to help debug
+    notifyOnNetworkStatusChange: true,
+    onCompleted: (data) => {
+      console.log('Query completed:', data);
+    },
+    onError: (error) => {
+      console.error('Query error:', error);
+    }
+  });
+
+  // Debug log every state change
+  useEffect(() => {
+    console.log('Current state:', {
+      loading,
+      error: error?.message,
+      data,
+      networkStatus: data?.networkStatus
+    });
+  }, [loading, error, data]);
+
+  const fallbackAnnouncements = [
     "🎉 Big Announcement: EcoPlaster is now available nationwide!",
     "💡 Special Offer: Get 20% off on your first order with code ECO20!",
-    "📢 Join Our Dealer Program and grow your business with EcoPlaster.",
+    "📢 Join Our Dealer Program and grow your business with EcoPlaster."
   ];
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const announcements = data?.getAnnouncements?.map(
+    (announcement: Announcement) => announcement.message
+  ) || (loading ? [] : fallbackAnnouncements);
 
+  // Handle rotation
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % announcements.length);
-    }, 4000); // Change announcement every 4 seconds
+    if (announcements.length === 0) return;
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => 
+        prevIndex === announcements.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [announcements.length]);
 
-  return (
-    <div className="bg-black text-white py-1 px-3 overflow-hidden w-full">
-      <div className="relative h-[2.5rem] overflow-hidden flex items-center justify-center">
-        <div
-          className="absolute w-full text-center transition-transform duration-700 ease-in-out"
-          style={{
-            transform: `translateY(-${currentIndex * 2.5}rem)`,
-          }}
-        >
-          {announcements.map((announcement, index) => (
-            <p
+  // If loading for more than 5 seconds, show fallback
+  useEffect(() => {
+    if (!loading) return;
+    
+    const timeout = setTimeout(() => {
+      console.log('Loading timeout reached, showing fallback');
+      return fallbackAnnouncements;
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
+  if (error) {
+    console.error('Error fetching announcements:', error);
+    return (
+      <div className="bg-black text-white w-full">
+        <div className="h-10 flex items-center justify-center">
+          {fallbackAnnouncements.map((announcement: string, index: number) => (
+            <div
               key={index}
-              className="text-xs sm:text-sm md:text-base"
-              style={{
-                height: "2.5rem", // Matches the container height
-                lineHeight: "2.5rem",
-              }}
+              className={`absolute w-full text-center transition-all duration-500 ease-in-out px-4 py-2
+                ${index === currentIndex ? "top-0 opacity-100" : "top-10 opacity-0"}`}
             >
-              {announcement}
-            </p>
+              <p className="text-sm md:text-base truncate">{announcement}</p>
+            </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Don't render if no announcements
+  if (!loading && announcements.length === 0) return null;
+
+  return (
+    <div className="bg-black text-white w-full overflow-hidden">
+      <div className="h-10 relative">
+        {(loading ? [] : announcements).map((announcement: string, index: number) => (
+          <div
+            key={index}
+            className={`absolute w-full text-center transition-all duration-500 ease-in-out px-4 py-2
+              ${index === currentIndex 
+                ? "top-0 opacity-100" 
+                : "top-10 opacity-0"
+              }`}
+          >
+            <p className="text-sm md:text-base truncate">
+              {announcement}
+            </p>
+          </div>
+        ))}
+        {loading && (
+          <div className="h-10 flex items-center justify-center">
+            <p className="text-sm">Loading announcements...</p>
+          </div>
+        )}
       </div>
     </div>
   );
