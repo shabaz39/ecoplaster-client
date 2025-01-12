@@ -4,6 +4,16 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { getAllAnnouncement } from '@/constants/queries/getAllAnnouncementsQuery';
+import { BlogForm } from '@/components/BlogPostComponents/BlogForm';
+import { BlogList } from '@/components/BlogPostComponents/BlogList';
+import { BlogFormData, IBlog } from '@/types/blog.types';
+import {
+  GET_ALL_BLOGS,
+  CREATE_BLOG,
+  UPDATE_BLOG,
+  DELETE_BLOG,
+  PUBLISH_BLOG
+} from '@/constants/queries/blogQueries';
 
 const CREATE_ANNOUNCEMENT = gql`
   mutation CreateAnnouncement($message: String!) {
@@ -15,12 +25,14 @@ const CREATE_ANNOUNCEMENT = gql`
 `;
 
 const DELETE_ANNOUNCEMENT = gql`
-  mutation DeleteAnnouncement($id: String!) {
-    deleteAnnouncement(id: $id) {
-      id
-      message
-    }
+mutation DeleteAnnouncement($id: ID!) {
+  deleteAnnouncement(id: $id) {
+    id
+    message
+    createdAt
+    active
   }
+}
 `;
 
 const UPDATE_ANNOUNCEMENT = gql`
@@ -43,6 +55,9 @@ interface EditingAnnouncement {
 }
 
 const AdminDashboard: React.FC = () => {
+
+
+
   const orders = ["Order1", "Order2", "Order3"];
   const controls = ["Homepage Banner", "Product Listings", "Promotions"];
   const blogs = [
@@ -52,6 +67,8 @@ const AdminDashboard: React.FC = () => {
   ];
 
   const [showBlogForm, setShowBlogForm] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<IBlog | null>(null);
+
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState("");
   const [editingAnnouncement, setEditingAnnouncement] = useState<EditingAnnouncement | null>(null);
@@ -59,6 +76,15 @@ const AdminDashboard: React.FC = () => {
   const { data: announcementData, loading, refetch } = useQuery(getAllAnnouncement, {
     variables: { limit: 5 },
   });
+  const { data: blogsData, loading: blogsLoading, refetch: refetchBlogs } 
+    = useQuery(GET_ALL_BLOGS);
+
+      // Blog mutations
+  const [createBlog, { loading: createBlogLoading }] = useMutation(CREATE_BLOG);
+  const [updateBlog, { loading: updateBlogLoading }] = useMutation(UPDATE_BLOG);
+  const [deleteBlog] = useMutation(DELETE_BLOG);
+  const [publishBlog] = useMutation(PUBLISH_BLOG);
+
 
   const [createAnnouncement] = useMutation(CREATE_ANNOUNCEMENT, {
     onCompleted: () => {
@@ -80,6 +106,8 @@ const AdminDashboard: React.FC = () => {
       refetch();
     }
   });
+
+  
 
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,6 +172,111 @@ const AdminDashboard: React.FC = () => {
   };
 
   const toggleBlogForm = () => setShowBlogForm(!showBlogForm);
+
+  // Blog handlers
+  const handleCreateBlog = async (formData: BlogFormData, files: File[]) => {
+    try {
+      if (!files.length) {
+        alert("Please select at least one image");
+        return;
+      }
+  
+      // Create proper Upload objects from Files
+      const uploadFiles = files.map(file => {
+        // Create a new blob from the file
+        const blob = new Blob([file], { type: file.type });
+        
+        // Create a new File object with the blob
+        return new File([blob], file.name, {
+          type: file.type,
+          lastModified: new Date().getTime()
+        });
+      });
+  
+      const input = {
+        title: formData.title,
+        body: formData.body,
+        metaTags: formData.metaTags.split(",").map((tag) => tag.trim()),
+        author: formData.author,
+        published: false,
+      };
+  
+      console.log("Creating blog with:", {
+        input,
+        filesCount: uploadFiles.length
+      });
+  
+      const { data } = await createBlog({
+        variables: {
+          input,
+          files: uploadFiles
+        }
+      });
+  
+      if (data?.createBlog) {
+        alert("Blog created successfully!");
+        setShowBlogForm(false);
+        refetchBlogs();
+      }
+    } catch (error: any) {
+      console.error("Error details:", {
+        message: error.message,
+        networkError: error.networkError?.result,
+        graphQLErrors: error.graphQLErrors
+      });
+      alert(`Failed to create blog: ${error.message}`);
+    }
+  };
+
+const handleUpdateBlog = async (formData: BlogFormData, files: File[]) => {
+  if (!editingBlog) return;
+
+  try {
+    await updateBlog({
+      variables: {
+        id: editingBlog.id,
+        input: {
+          ...formData,
+          metaTags: formData.metaTags.split(',').map(tag => tag.trim())
+        },
+        files: files.length > 0 ? files : undefined
+      }
+    });
+    setEditingBlog(null);
+    setShowBlogForm(false);
+    refetchBlogs();
+  } catch (error) {
+    console.error('Error updating blog:', error);
+    alert('Failed to update blog');
+  }
+};
+
+const handleDeleteBlog = async (id: string) => {
+  try {
+    await deleteBlog({
+      variables: { id }
+    });
+    refetchBlogs();
+  } catch (error) {
+    console.error('Error deleting blog:', error);
+    alert('Failed to delete blog');
+  }
+};
+
+const handlePublishBlog = async (id: string) => {
+  try {
+    const { data } = await publishBlog({
+      variables: { id }
+    });
+    if (data.publishBlog.url) {
+      window.open(data.publishBlog.url, '_blank');
+    }
+    refetchBlogs();
+  } catch (error) {
+    console.error('Error publishing blog:', error);
+    alert('Failed to publish blog');
+  }
+};
 
   return (
     <div className="bg-gray-50 min-h-screen lg:px-64">
@@ -293,63 +426,55 @@ const AdminDashboard: React.FC = () => {
       </section>
 
       <section className="px-6 py-8">
-        <h3 className="text-lg font-semibold text-gray-700">Blogs</h3>
-        <button onClick={toggleBlogForm} className="bg-green-500 text-black border-4 px-4 py-2 rounded mt-4">
-          {showBlogForm ? "Close Blog Form" : "Create New Blog"}
-        </button>
-        {showBlogForm && (
-          <div className="mt-6 bg-white text-black p-6 rounded-lg shadow-lg">
-            <form>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium">Blog Title</label>
-                <input type="text" className="w-full p-2 border rounded" />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium">Main Image URL</label>
-                <input type="text" className="w-full p-2 border rounded" />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium">Blog Body</label>
-                <textarea className="w-full p-2 border rounded" rows={6}></textarea>
-              </div>
-              <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-gray-700 font-medium">Image 1 URL</label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium">Image 2 URL</label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium">Image 3 URL</label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium">Meta Tags (comma separated)</label>
-                <input type="text" className="w-full p-2 border rounded" />
-              </div>
-              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                Publish Blog
-              </button>
-            </form>
-          </div>
-        )}
+  <div className="flex justify-between items-center">
+    <h3 className="text-lg font-semibold text-gray-700">Blogs</h3>
+    <button
+      onClick={() => {
+        setEditingBlog(null);
+        setShowBlogForm(!showBlogForm);
+      }}
+      className="bg-newgreensecond text-white px-4 py-2 rounded hover:bg-green-600"
+    >
+      {showBlogForm ? "Close Form" : "Create New Blog"}
+    </button>
+  </div>
 
-        <div className="mt-8">
-          <h4 className="text-lg font-semibold text-gray-700">Existing Blogs</h4>
-          {blogs.map((blog, index) => (
-            <div key={index} className="bg-white p-4 rounded-lg shadow-sm mt-4">
-              <h5 className="text-gray-700 font-medium">{blog.title}</h5>
-              <p className="text-sm text-gray-600">Status: {blog.status}</p>
-              <a href="#" className="text-newgreensecond hover:underline">
-                Edit Blog
-              </a>
-            </div>
-          ))}
-        </div>
-      </section>
+  {showBlogForm && (
+    <div className="mt-6 bg-white p-6 rounded-lg shadow-lg">
+      <h4 className="text-lg text-black font-medium mb-4">
+        {editingBlog ? 'Edit Blog' : 'Create New Blog'}
+      </h4>
+      <BlogForm
+        onSubmit={editingBlog ? handleUpdateBlog : handleCreateBlog}
+        initialData={editingBlog ? {
+          title: editingBlog.title,
+          body: editingBlog.body,
+          metaTags: editingBlog.metaTags.join(', '),
+          author: editingBlog.author
+        } : undefined}
+        loading={createBlogLoading || updateBlogLoading}
+      />
+    </div>
+  )}
+
+  <div className="mt-8">
+    {blogsLoading ? (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-green-500 border-t-transparent"></div>
+      </div>
+    ) : (
+      <BlogList
+        blogs={blogsData?.getAllBlogs || []}
+        onPublish={handlePublishBlog}
+        onDelete={handleDeleteBlog}
+        onEdit={(blog) => {
+          setEditingBlog(blog);
+          setShowBlogForm(true);
+        }}
+      />
+    )}
+  </div>
+</section>
 
       <section className="px-6 py-8">
         <h3 className="text-lg font-semibold text-gray-700">Admin Account</h3>
