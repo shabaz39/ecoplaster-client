@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import LoadingOverlay from "@/components/LoadingOverlay";
 
@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import Categories from "./CategoriesHover";
 import SignupModal from "./Signup";
+import SearchBar from "./SearchBar";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -83,12 +84,15 @@ const Navbar: React.FC = () => {
 
         {/* Center Section (Search Bar for Desktop) */}
         <div className="hidden sm:flex flex-1 ml-10">
-          <input
-            type="text"
-            placeholder="Search for products..."
-            className="lg:w-11/12 max-w-screen-xl px-4 py-2 border border-gray-300 rounded-md text-black focus:outline-none focus:ring focus:ring-green-200"
-          />
-        </div>
+  <SearchBar />
+</div>
+
+{/* Search Overlay */}
+<AnimatePresence>
+  {isSearchOpen && (
+    <SearchBar isMobile onClose={() => setIsSearchOpen(false)} />
+  )}
+</AnimatePresence>
 
         {/* Right Section (Icons and Links) */}
         <div className="flex items-center gap-4 lg:gap-8">
