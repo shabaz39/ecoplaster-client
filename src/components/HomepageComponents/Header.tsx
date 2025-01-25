@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
+import { Search, User, ShoppingCart, Menu, X, Link } from "lucide-react";
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,8 +14,11 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-sm">
       <div className="container mx-auto flex items-center justify-between py-4 px-4 md:px-6">
         {/* Logo */}
-        <h1 className="text-lg font-bold text-gray-800">EcoPlaster</h1>
-
+        <Link href="/">
+  <h1 className="text-lg font-bold text-gray-800 hover:underline cursor-pointer">
+    EcoPlaster
+  </h1>
+</Link>
         {/* Hamburger Menu (Mobile) */}
         <button
           className="md:hidden text-gray-800"

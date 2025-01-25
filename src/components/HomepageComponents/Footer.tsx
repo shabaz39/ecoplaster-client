@@ -106,7 +106,7 @@ const Footer: React.FC = () => {
       {/* Third Section */}
       <div className="bg-white text-black text-center py-4">
         <p className="text-sm">
-          © 2024 EcoPlaster. All Rights Reserved. | EcoPlaster name and logo are
+          © 2025 EcoPlaster. All Rights Reserved. | EcoPlaster name and logo are
           registered trademarks owned by EcoPlaster Innovations Pvt. Ltd.
         </p>
       </div>

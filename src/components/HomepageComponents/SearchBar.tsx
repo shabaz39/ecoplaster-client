@@ -26,31 +26,39 @@ const SEARCH_PRODUCTS = gql`
 `;
 
 const GET_TOP_SUGGESTIONS = gql`
-  query GetTopSuggestions {
-    getTopSearchSuggestions(limit: 5) {
+  query GetTopSuggestions($limit: Int!) {
+    getTopSearchSuggestions(limit: $limit) {
+      id
       name
+      image
+      code
+      color
+      fabric
       price {
+        mrp
         offerPrice
       }
-      image
-      id
-      code
-      searchScore
+      series
+      finish
     }
   }
 `;
 
 const GET_TRENDING_SEARCHES = gql`
-  query GetTrendingSearches {
-    getTrendingSearches(limit: 5) {
+  query GetTrendingSearches($limit: Int!) {
+    getTrendingSearches(limit: $limit) {
+      id
       name
+      image
+      code
+      color
+      fabric
       price {
+        mrp
         offerPrice
       }
-      image
-      id
-      code
-      searchScore
+      series
+      finish
     }
   }
 `;
@@ -80,16 +88,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ isMobile = false, onClose }) => {
   });
 
  // Inside the SearchBar component, add these logs:
-const { data: topSuggestionsData, loading: topSuggestionsLoading } = useQuery(GET_TOP_SUGGESTIONS, {
-    onCompleted: (data) => console.log("Top suggestions data:", data),
-    onError: (error) => console.error("Top suggestions error:", error)
-  });
-  
-  const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_SEARCHES, {
-    onCompleted: (data) => console.log("Trending data:", data),
-    onError: (error) => console.error("Trending error:", error)
-  });
-  
+ const { data: topSuggestionsData, loading: topSuggestionsLoading } = useQuery(GET_TOP_SUGGESTIONS, {
+  variables: { limit: 5 },
+  onCompleted: (data) => console.log("Top suggestions data:", data),
+  onError: (error) => console.error("Top suggestions error:", error)
+});
+
+const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_SEARCHES, {
+  variables: { limit: 5 },
+  onCompleted: (data) => console.log("Trending data:", data),
+  onError: (error) => console.error("Trending error:", error)
+});
   const debouncedSearch = useCallback(
     debounce(async (searchTerm: string) => {
       if (searchTerm.length >= 2) {
@@ -108,6 +117,28 @@ const { data: topSuggestionsData, loading: topSuggestionsLoading } = useQuery(GE
     }, 300),
     [refetch]
   );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+        setSearchResults([]);
+      }
+    };
+  
+    // Add the event listener
+    document.addEventListener('mousedown', handleClickOutside);
+  
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Also update your onFocus handler to show results
+  const handleFocus = () => {
+    setShowResults(true);
+  };
 
   useEffect(() => {
     debouncedSearch(query);
@@ -245,8 +276,8 @@ const { data: topSuggestionsData, loading: topSuggestionsLoading } = useQuery(GE
             setQuery(e.target.value);
             setShowResults(true);
           }}
-          onFocus={() => setShowResults(true)}
-          placeholder="Search for products..."
+          onFocus={handleFocus}
+          placeholder="Search for Stunning Products..."
           className={`w-full px-4 py-2 pl-10 ${
             isMobile ? "text-gray-800" : "text-black"
           } border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-transparent`}

@@ -4,15 +4,17 @@ import React, { useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 
 const stores = [
-  { city: "Ahmedabad", stores: "3 STORES", icon: "/store-icon-1.png" },
-  { city: "Bengaluru", stores: "19 STORES", icon: "/store-icon-2.png" },
-  { city: "Chandigarh", stores: "2 STORES", icon: "/store-icon-3.png" },
-  { city: "Chennai", stores: "5 STORES", icon: "/store-icon-4.png" },
-  { city: "Coimbatore", stores: "1 STORE", icon: "/store-icon-5.png" },
-  { city: "Dehradun", stores: "1 STORE", icon: "/store-icon-6.png" },
-  { city: "Delhi", stores: "6 STORES", icon: "/store-icon-7.png" },
-  { city: "Faridabad", stores: "2 STORES", icon: "/store-icon-8.png" },
-  { city: "Ghaziabad", stores: "1 STORE", icon: "/store-icon-9.png" },
+  { city: "Tirupati", stores: "1 STORE", icon: "/store-icon-1.png" },
+  { city: "Bengaluru", stores: "1 STORE", icon: "/store-icon-2.png" },
+  { city: "Kakinada", stores: "1 STORE", icon: "/store-icon-3.png" },
+  { city: "Calicut", stores: "1 STORE", icon: "/store-icon-4.png" },
+  { city: "Deoli", stores: "1 STORE", icon: "/store-icon-5.png" },
+  { city: "Bhubaneshwar", stores: "1 STORE", icon: "/store-icon-6.png" },
+  { city: "Ambala", stores: "1 STORE", icon: "/store-icon-7.png" },
+  { city: "Hisar", stores: "1 STORE", icon: "/store-icon-8.png" },
+  { city: "Anantnag", stores: "1 STORE", icon: "/store-icon-9.png" },
+  { city: "Srinagar", stores: "1 STORE", icon: "/store-icon-9.png" },
+
 ];
 
 const StoresSection: React.FC = () => {
@@ -53,7 +55,7 @@ const StoresSection: React.FC = () => {
         </h2>
 
           <button className="text-sm font-medium text-newgreen hover:underline">
-            98+ Stores &rarr;
+            10+ Stores &rarr;
           </button>
         </div>
 

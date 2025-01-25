@@ -28,7 +28,7 @@ const BannerWithModal: React.FC = () => {
         {/* Image */}
         <div className="hidden md:block">
           <img
-            src="/confused.jpg"
+            src="/confused.webp"
             alt="Confused"
             className="w-64 sm:w-60 rounded-md"
           />

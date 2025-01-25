@@ -30,6 +30,8 @@ import {
 import Categories from "./CategoriesHover";
 import SignupModal from "./Signup";
 import SearchBar from "./SearchBar";
+import Link from "next/link";
+import DealerModal from "./BecomeDealer";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,6 +39,7 @@ const Navbar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // State for the SignupModal
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDealerModalOpen, setIsDealerModalOpen] = useState(false);
 
 
   const navigateTo = (path: string) => {
@@ -79,13 +82,17 @@ const Navbar: React.FC = () => {
           </button>
 
           {/* Logo */}
-          <div className="text-xl font-bold">EcoPlaster</div>
-        </div>
+
+          <Link href="/">
+  <h1 className="text-xl font-bold cursor-pointer hover:text-newbeige">
+    EcoPlaster
+  </h1>
+</Link>        </div>
 
         {/* Center Section (Search Bar for Desktop) */}
-        <div className="hidden sm:flex flex-1 ml-10">
+        <div className="hidden sm:flex flex-1 ml-10 mr-10">
   <SearchBar />
-</div>
+</div> 
 
 {/* Search Overlay */}
 <AnimatePresence>
@@ -97,10 +104,21 @@ const Navbar: React.FC = () => {
         {/* Right Section (Icons and Links) */}
         <div className="flex items-center gap-4 lg:gap-8">
           <div className="flex p items-center gap-4 lg:gap-8">
-            <button className="hidden md:block relative text-white hover:text-newbeige transition-all duration-200 group">
-              Become a Dealer
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-newbeige transition-all duration-300 group-hover:w-full"></span>
-            </button>
+          <>
+  <button 
+    onClick={() => setIsDealerModalOpen(true)}
+    className="hidden md:block relative text-white hover:text-newbeige transition-all duration-200 group"
+  >
+    Become a Dealer
+    <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-newbeige transition-all duration-300 group-hover:w-full"></span>
+  </button>
+
+  {/* Dealer Modal */}
+  <DealerModal 
+    isOpen={isDealerModalOpen} 
+    onClose={() => setIsDealerModalOpen(false)} 
+  />
+</>
             <button className="hidden md:block relative text-white hover:text-newbeige transition-all duration-200 group">
               Stores
               <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-newbeige transition-all duration-300 group-hover:w-full"></span>
@@ -144,12 +162,12 @@ const Navbar: React.FC = () => {
       {/* Horizontal Scrollable Categories */}
       <div className="flex items-center overflow-x-scroll no-scrollbar gap-4 px-4 py-2 bg-newgreensecond sm:hidden">
         {[
-          "Mattress",
-          "Beds",
+          "Gold series",
+          "Silk series",
           "Sofa",
-          "Bedding",
-          "Zense",
-          "Wardrobe",
+          "Chips series",
+          "Dual series",
+          "Cotton series",
            
         ].map((item, index) => (
           <div
@@ -312,6 +330,17 @@ const Navbar: React.FC = () => {
                   <Book size={20} />
                   <span className="text-sm font-semibold">Blogs</span>
                 </li>
+                {/* Add this to your menu items list */}
+<li 
+  className="flex items-center gap-3 text-newgreensecond hover:text-newgreen cursor-pointer"
+  onClick={() => {
+    setIsDealerModalOpen(true);
+    setIsMenuOpen(false);  // Close menu when opening modal
+  }}
+>
+  <Package size={20} />
+  <span className="text-sm font-semibold">Become a Dealer</span>
+</li>
               </ul>
             </div>
           </motion.div>
