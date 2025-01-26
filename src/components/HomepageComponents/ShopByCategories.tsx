@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
 const categories = [
-  { name: "Mattresses & Beddings", image: "/product1 (1).webp" },
-  { name: "Beds & Side Tables", image: "/product1 (2).webp" },
-  { name: "Pillows & Cushions", image: "/product1 (3).webp" },
-  { name: "Sofas & Seating", image: "/product1 (4).webp" },
-  { name: "Wardrobes & Dressing Tables", image: "/product1 (5).webp" },
-  { name: "Chairs & WFH Furniture", image: "/product1 (1).webp" },
-  { name: "TV Units & Coffee Tables", image: "/product1 (2).webp" },
-  { name: "Cabinets & Shelves", image: "/product1 (3).webp" },
+  { name: "Silk Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901747/Product_01_r3m091.webp" },
+  { name: "Gold Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901760/Product_01_vexvf6.webp" },
+  { name: "Chips Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901756/Product_01_yzbadi.webp" },
+  { name: "Dual Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901771/Product_01_nyoml3.webp" },
+  { name: "Cotton Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901769/Product_01_awbpun.webp" },
+  { name: "Cotton & Silk Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901765/Product_01_arv6ve.webp" },
+  { name: "Glitter Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901749/Product_01_pkv1zc.webp" },
+  { name: "Multi-Color Series", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901764/Product_01_r2znth.webp" }
 ];
 
 const subcategories = Array.from({ length: 21 }, (_, i) => ({
@@ -40,7 +40,7 @@ const CategoriesSection: React.FC = () => {
     
     >
       {/* Heading */}
-      <h2 className="text-center  text-2xl sm:text-3xl font-bold py-6 text-gray-800">
+      <h2 className="text-center text-2xl sm:text-3xl font-bold py-6 text-gray-800">
         Shop By Categories
         <div className="flex justify-center mt-1 ">
           <span className="w-16 h-1 mt-2 bg-newgreen rounded"></span>

@@ -4,6 +4,9 @@ import "./globals.css";
 import LoadingProvider from "@/components/LoadingProvider"; 
 import client from "@/lib/apolloClient";
 import ApolloWrapper from "@/components/ApolloWrapper";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Navbar from "@/components/HomepageComponents/Navbar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,7 +37,8 @@ export default function RootLayout({
            <ApolloWrapper>
           <LoadingProvider>{children}</LoadingProvider>
         </ApolloWrapper>
-       </body>
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+        </body>
     </html>
   );
 }

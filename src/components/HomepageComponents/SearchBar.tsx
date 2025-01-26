@@ -7,60 +7,81 @@ import Image from "next/image";
 import debounce from "lodash/debounce";
 
 const SEARCH_PRODUCTS = gql`
-  query SearchProducts($query: String!, $limit: Int) {
-    searchProducts(query: $query, limit: $limit) {
-      name
-      series
-      price {
-        mrp
-        offerPrice
-      }
-      image
-      id
-      finish
-      fabric
-      color
-      code
+ query SearchProducts($query: String!, $limit: Int) {
+  searchProducts(query: $query, limit: $limit) {
+    name
+    series
+    price {
+      mrp
+      offerPrice
+    }
+    id
+    finish
+    fabric
+    color
+    code
+    images {
+      imageMain
+      imageArtTable
+      imageWall
+      imageBedroom
+      imageRoom
+      imageLivingRoom
     }
   }
+}
 `;
 
 const GET_TOP_SUGGESTIONS = gql`
-  query GetTopSuggestions($limit: Int!) {
-    getTopSearchSuggestions(limit: $limit) {
-      id
-      name
-      image
-      code
-      color
-      fabric
-      price {
-        mrp
-        offerPrice
-      }
-      series
-      finish
+ query GetTopSearchSuggestions($limit: Int) {
+  getTopSearchSuggestions(limit: $limit) {
+    id
+    name
+    code
+    color
+    fabric
+    price {
+      mrp
+      offerPrice
+    }
+    series
+    finish
+    images {
+      imageMain
+      imageArtTable
+      imageWall
+      imageBedroom
+      imageRoom
+      imageLivingRoom
     }
   }
+}
 `;
 
 const GET_TRENDING_SEARCHES = gql`
-  query GetTrendingSearches($limit: Int!) {
-    getTrendingSearches(limit: $limit) {
-      id
-      name
-      image
-      code
-      color
-      fabric
-      price {
-        mrp
-        offerPrice
-      }
-      series
-      finish
+ query GetTopSearchSuggestions($limit: Int) {
+  getTrendingSearches(limit: $limit) {
+    id
+    name
+    code
+    color
+    fabric
+    price {
+      mrp
+      offerPrice
+    }
+    series
+    finish
+    images {
+      imageMain
+      imageArtTable
+      imageWall
+      imageBedroom
+      imageRoom
+      imageLivingRoom
     }
   }
+}
 `;
 
 interface SearchBarProps {
@@ -153,15 +174,16 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
   };
 
   const ProductCard = ({ product }: { product: any }) => (
+
     <div
       onClick={() => handleProductClick(product.id)}
       className="flex items-center gap-4 p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
     >
       <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-        {product.image ? (
+      {product.images?.imageMain ? (
           <Image
-            src={product.image}
-            alt={product.name}
+          src={product.images.imageMain}
+          alt={product.name}
             fill
             className="object-cover"
           />
@@ -183,6 +205,7 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
   );
 
   const renderSearchContent = () => {
+    
     if (query.length >= 2) {
       if (searchLoading) {
         return (

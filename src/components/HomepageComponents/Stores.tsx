@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useRouter } from 'next/navigation';
 
 const stores = [
   { city: "Tirupati", stores: "1 STORE", icon: "/store-icon-1.png" },
@@ -41,6 +42,17 @@ const StoresSection: React.FC = () => {
   };
 
   const visibleStores = getVisibleStores();
+  const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+  
+
+  const navigateTo = (path: string) => {
+    setIsLoading(true); // Start loading
+    setTimeout(() => {
+    router.push(path);
+  }, 500);
+ 
+  };
 
   return (
     <section className="bg-white py-8 px-4 sm:px-8 lg:px-64">
@@ -54,7 +66,9 @@ const StoresSection: React.FC = () => {
 </div>
         </h2>
 
-          <button className="text-sm font-medium text-newgreen hover:underline">
+          <button className="text-sm font-medium text-newgreen hover:underline"
+                                    onClick={() => navigateTo("/stores")}
+>
             10+ Stores &rarr;
           </button>
         </div>

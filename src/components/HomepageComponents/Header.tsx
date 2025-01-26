@@ -38,7 +38,7 @@ const Header: React.FC = () => {
           <a href="#" className="text-gray-700 hover:text-green">
             Products
           </a>
-          <a href="#" className="text-gray-700 hover:text-green">
+          <a href="/aboutus" className="text-gray-700 hover:text-green">
             About Us
           </a>
           <a href="#" className="text-gray-700 hover:text-green">
@@ -93,7 +93,7 @@ const Header: React.FC = () => {
               </a>
             </li>
             <li>
-              <a href="#" className="text-gray-700 hover:text-green">
+              <a href="/aboutus" className="text-gray-700 hover:text-green">
                 About Us
               </a>
             </li>

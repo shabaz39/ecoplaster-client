@@ -6,11 +6,12 @@ import { PlayCircle } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Avinash",
-    role: "Automotive Engineer",
+    name: "Ecoplaster",
+    role: "Sustainable Wall solutions",
     description:
       "Ecoplaster is not only a piece of wall decor, it is part of your life, supporting you in all aspects of your life.",
     videoThumbnail: "/video-thumbnail-1.webp",
+    videoUrl: "https://www.youtube.com/embed/qg8uUo6tW8M", // YouTube Embed URL
   },
   {
     name: "Sushmitha",
@@ -36,44 +37,51 @@ const testimonials = [
 ];
 
 const TestimonialsSection: React.FC = () => {
-  const [selectedTestimonial, setSelectedTestimonial] = useState(
-    testimonials[0]
-  );
+  const [selectedTestimonial, setSelectedTestimonial] = useState(testimonials[0]);
 
   return (
     <section className="bg-black lg:mt-10 py-24 px-4 sm:px-8 lg:px-64">
-     <div className="pb-4"> 
-       
-      <h2 className="relative pb-2 lg:text-2xl font-bold text-white">
-Customer Testimonials        
-<div className="flex justify-center mt-1">
-        <span className="absolute left-0 bottom-0 h-[3px] w-14 bg-newgreen rounded-md"></span>
-        </div>
-      </h2>
+      <div className="pb-4">
+        <h2 className="relative pb-2 lg:text-2xl font-bold text-white">
+          Customer Testimonials        
+          <div className="flex justify-center mt-1">
+            <span className="absolute left-0 bottom-0 h-[3px] w-14 bg-newgreen rounded-md"></span>
+          </div>
+        </h2>
       </div>   
+      
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Main Video Card */}
         <div className="flex-1">
           <div className="relative bg-black rounded-lg overflow-hidden shadow-md">
-            <img
-              src={selectedTestimonial.videoThumbnail}
-              alt={selectedTestimonial.name}
-              className="w-full h-64 sm:h-80 object-cover"
-            />
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer"
-              whileHover={{ scale: 1.1 }}
-            >
-              <PlayCircle size={60} className="text-white" />
-            </motion.div>
+            {selectedTestimonial.videoUrl ? (
+              <iframe
+                src={selectedTestimonial.videoUrl}
+                title={selectedTestimonial.name}
+                className="w-full h-64 sm:h-80"
+                allowFullScreen
+              />
+            ) : (
+              <img
+                src={selectedTestimonial.videoThumbnail}
+                alt={selectedTestimonial.name}
+                className="w-full h-64 sm:h-80 object-cover"
+              />
+            )}
+            {!selectedTestimonial.videoUrl && (
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer"
+                whileHover={{ scale: 1.1 }}
+              >
+                <PlayCircle size={60} className="text-white" />
+              </motion.div>
+            )}
           </div>
           <div className="mt-4">
             <h3 className="text-xl font-bold text-white">
               {selectedTestimonial.name} | {selectedTestimonial.role}
             </h3>
-            <p className="mt-2 text-gray-400">
-              {selectedTestimonial.description}
-            </p>
+            <p className="mt-2 text-gray-400">{selectedTestimonial.description}</p>
           </div>
         </div>
 

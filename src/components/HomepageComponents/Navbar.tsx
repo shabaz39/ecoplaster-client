@@ -119,7 +119,9 @@ const Navbar: React.FC = () => {
     onClose={() => setIsDealerModalOpen(false)} 
   />
 </>
-            <button className="hidden md:block relative text-white hover:text-newbeige transition-all duration-200 group">
+            <button className="hidden md:block relative text-white hover:text-newbeige transition-all duration-200 group"
+                                      onClick={() => navigateTo("/stores")}
+                                      >
               Stores
               <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-newbeige transition-all duration-300 group-hover:w-full"></span>
             </button>
@@ -139,7 +141,8 @@ const Navbar: React.FC = () => {
             <Search size={20} />
           </button>
 
-          <button className="text-white hover:text-newbeige">
+          <button className="text-white hover:text-newbeige"  onClick={() => navigateTo("/contactus")}
+                                      >
             <Phone size={20} />
           </button>
           <button className="text-white hover:text-newbeige">
