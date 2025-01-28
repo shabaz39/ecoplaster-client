@@ -26,8 +26,8 @@ export const GET_PRODUCTS = gql`
 `;
 
 export const FILTER_PRODUCTS = gql`
-  query FilterProducts($color: String, $fabric: String, $priceRange: [Float], $series: String, $finish: String) {
-  filterProducts(color: $color, fabric: $fabric, priceRange: $priceRange, series: $series, finish: $finish) {
+ query FilterProducts($fabric: [String], $priceRange: [Float], $series: [String], $finish: [String], $color: [String]) {
+  filterProducts(fabric: $fabric, priceRange: $priceRange, series: $series, finish: $finish, color: $color) {
     id
     name
     code

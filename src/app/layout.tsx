@@ -7,6 +7,8 @@ import ApolloWrapper from "@/components/ApolloWrapper";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Navbar from "@/components/HomepageComponents/Navbar";
+import { CartProvider } from "@/context/CartContext";  // Import CartProvider
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,9 +36,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+                <CartProvider> 
            <ApolloWrapper>
           <LoadingProvider>{children}</LoadingProvider>
         </ApolloWrapper>
+        </CartProvider>
+
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
         </body>
     </html>
