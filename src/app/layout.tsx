@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import LoadingProvider from "@/components/LoadingProvider"; 
+import {LoadingProvider} from "@/components/LoadingProvider"; 
 import client from "@/lib/apolloClient";
 import ApolloWrapper from "@/components/ApolloWrapper";
 import { ToastContainer } from 'react-toastify';

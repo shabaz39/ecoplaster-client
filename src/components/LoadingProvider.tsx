@@ -1,38 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation"; // For detecting route changes
-import LoadingOverlay from "@/components/LoadingOverlay";
+import React, { createContext, useContext, useState } from "react";
+import LoadingOverlay from "./LoadingOverlay";
 
-const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [prevPath, setPrevPath] = useState<string | null>(null);
-  const pathname = usePathname();
+const LoadingContext = createContext({
+  isLoading: false,
+  setLoading: (loading: boolean) => {},
+});
 
-  useEffect(() => {
-    if (prevPath && prevPath !== pathname) {
-      // Route change detected
-      setIsLoading(true);
-
-      // Simulate a loading time (adjust as needed)
-      const timeout = setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
-
-      return () => clearTimeout(timeout); // Cleanup on unmount
-    }
-
-    setPrevPath(pathname); // Update previous path
-  }, [pathname, prevPath]);
+// ✅ Global Provider for Loading State
+export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isLoading, setLoading] = useState(false);
 
   return (
-    <>
-      {isLoading && <LoadingOverlay />} {/* Show overlay during loading */}
+    <LoadingContext.Provider value={{ isLoading, setLoading }}>
+      {isLoading && <LoadingOverlay />} {/* ✅ Display overlay when loading */}
       {children}
-    </>
+    </LoadingContext.Provider>
   );
 };
 
-export default LoadingProvider;
+// ✅ Custom Hook to Control Loading
+export const useLoading = () => useContext(LoadingContext);
