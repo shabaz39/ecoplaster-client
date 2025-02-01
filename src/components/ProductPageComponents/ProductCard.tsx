@@ -11,26 +11,43 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage }) => {
-  const { addToCart, removeFromCart, cartItems } = useCart();
+  const { addToCart,toggleCart,  removeFromCart, cartItems } = useCart();
   const increasedMRP = Math.ceil(product.price.mrp * 1.5);
   const discount = Math.round(((increasedMRP - product.price.offerPrice) / increasedMRP) * 100);
 
   const cartItem = cartItems.find((item) => item.id === product.id);
   const quantity = cartItem ? cartItem.quantity : 0;
 
-  const handleAddToCart = () => {
+  const handleBuyNow = (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent navigation
     addToCart({
       id: product.id,
       name: product.name,
       price: product.price.offerPrice,
+      originalPrice:product.price.mrp,
       quantity: 1,
     });
+    toggleCart(); // Open sidebar
+  };
+
+  
+  const handleAddToCart = (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent navigation
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price.offerPrice,
+      originalPrice:product.price.mrp,
+      quantity: 1,
+    });
+    toggleCart(); // Open sidebar
   };
 
   return (
-    <Link href={`/productDescription/${product.id}`} passHref>
-      <div className="group bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-200 cursor-pointer">
-        {/* Image Section */}
+    <div className="group bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-200 cursor-pointer ">
+      
+      {/* Image Section - Click to navigate */}
+      <Link href={`/productDescription/${product.id}`} passHref>
         <div className="relative h-72 w-full overflow-hidden">
           <Image
             src={product.images?.imageMain || fallbackImage}
@@ -45,68 +62,74 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
             </div>
           )}
         </div>
+      </Link>
 
-        {/* Content Section */}
-        <div className="p-5">
-          <h3 className="text-lg font-semibold text-productNameColor truncate mb-1 group-hover:text-hoverColor transition-colors">
+      {/* Content Section */}
+      <div className="p-5">
+        {/* Name - Click to navigate */}
+        <Link href={`/productDescription/${product.id}`} passHref>
+          <h3 className="text-lg font-semibold text-productNameColor truncate mb-1 group-hover:text-hoverColor transition-colors cursor-pointer">
             {product.name}
           </h3>
-          <p className="text-searchBeige text-sm mb-2">Code: {product.code}</p>
+        </Link>
+        
+        <p className="text-searchBeige text-sm mb-2">Code: {product.code}</p>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {product.color.map((color) => (
-              <span key={color} className="text-xs px-2 py-1 bg-cream text-newgreen rounded-full">
-                {color}
-              </span>
-            ))}
-          </div>
+        {/* Tags */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {product.color.map((color) => (
+            <span key={color} className="text-xs px-2 py-1 bg-cream text-newgreen rounded-full">
+              {color}
+            </span>
+          ))}
+        </div>
 
-          {/* Series & Finish */}
-          <div className="text-sm text-black mb-3">
-            <p className="truncate">Series: {product.series.join(' • ')}</p>
-            <p className="truncate">Finish: {product.finish.join(' • ')}</p>
-          </div>
+        {/* Series & Finish */}
+        <div className="text-sm text-black mb-3">
+          <p className="truncate">Series: {product.series.join(' • ')}</p>
+          <p className="truncate">Finish: {product.finish.join(' • ')}</p>
+        </div>
 
-          {/* Price Section */}
-          <div className="mt-4 flex items-end justify-between">
-            <div>
-              <span className="text-2xl font-bold text-productNameColor">
-                ₹{product.price.offerPrice.toLocaleString()}
-              </span>
-              <span className="text-sm text-searchBeige line-through ml-2">
-                ₹{increasedMRP.toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          {/* Buttons & Quantity Control */}
-          <div className="mt-5 flex flex-col gap-3">
-            {quantity > 0 ? (
-              <div className="flex items-center justify-between border border-greenComponent rounded-lg px-4 py-2">
-                <button onClick={() => removeFromCart(product.id)} className="text-newgreen hover:text-hoverColor">
-                  <Minus size={16} />
-                </button>
-                <span className="text-lg font-semibold text-productNameColor">{quantity}</span>
-                <button onClick={handleAddToCart} className="text-newgreen hover:text-hoverColor">
-                  <Plus size={16} />
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={handleAddToCart}
-                className="flex items-center justify-center gap-2 w-full bg-beige text-black py-2 rounded-lg 
-                hover:bg-newbeige hover:text-black transition-colors duration-200 font-medium">
-                <ShoppingCart size={16} /> Add to Cart
-              </button>
-            )}
-            <button className="flex items-center justify-center gap-2 w-full bg-newgreensecond text-white py-2 rounded-lg 
-              hover:bg-newgreen transition-colors duration-200 font-medium">
-              <CreditCard size={16} /> Buy Now
-            </button>
+        {/* Price Section */}
+        <div className="mt-4 flex items-end justify-between">
+          <div>
+            <span className="text-2xl font-bold text-productNameColor">
+              ₹{product.price.offerPrice.toLocaleString()}
+            </span>
+            <span className="text-sm text-searchBeige line-through ml-2">
+              ₹{increasedMRP.toLocaleString()}
+            </span>
           </div>
         </div>
+
+        {/* Buttons & Quantity Control */}
+        <div className="mt-5 flex flex-col gap-3">
+          {quantity > 0 ? (
+            <div className="flex items-center justify-between border border-greenComponent rounded-lg px-4 py-2">
+              <button onClick={() => removeFromCart(product.id)} className="text-newgreen hover:text-hoverColor">
+                <Minus size={16} />
+              </button>
+              <span className="text-lg font-semibold text-productNameColor">{quantity}</span>
+              <button onClick={handleAddToCart} className="text-newgreen hover:text-hoverColor">
+                <Plus size={16} />
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={handleAddToCart}
+              className="flex items-center justify-center gap-2 w-full bg-beige text-black py-2 rounded-lg 
+              hover:bg-newbeige hover:text-black transition-colors duration-200 font-medium">
+              <ShoppingCart size={16} /> Add to Cart
+            </button>
+          )}
+          <button
+            onClick={handleBuyNow}
+           className="flex items-center justify-center gap-2 w-full bg-newgreensecond text-white py-2 rounded-lg 
+            hover:bg-newgreen transition-colors duration-200 font-medium">
+            <CreditCard size={16} /> Buy Now
+          </button>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 };

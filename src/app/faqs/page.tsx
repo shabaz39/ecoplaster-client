@@ -2,6 +2,7 @@ import Banner from '@/components/BulkOrdersPageComponents/Banner'
 import FAQPage from '@/components/FAQComponents/Faqpage'
 import AnnouncementBanner from '@/components/HomepageComponents/AnnouncementBanner'
 import Footer from '@/components/HomepageComponents/Footer'
+import Hero from '@/components/HomepageComponents/Hero'
 import Navbar from '@/components/HomepageComponents/Navbar'
 import React from 'react'
 
@@ -10,7 +11,7 @@ const FreqPage = () => {
     <div>
            <AnnouncementBanner/>
      <Navbar/>
-        <Banner/>
+        <Hero/>
       <FAQPage/>
       <Footer/>
     </div>

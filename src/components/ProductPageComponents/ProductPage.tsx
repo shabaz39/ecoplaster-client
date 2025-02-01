@@ -8,6 +8,8 @@ import { ProductCard } from './ProductCard';
 import LoadingOverlay from '../LoadingOverlay';
 import { FILTER_PRODUCTS } from '../../constants/queries/productQueries';
 import type { Product, FiltersType } from '../../types/product.types';
+import { useCart } from '@/context/CartContext';
+import CartSidebar from '../CheckOutComponents/CartSidebar';
 
 const fallbackImages = [
   "/product1 (1).webp",
@@ -22,6 +24,8 @@ const AllProductsPage: React.FC = () => {
   const [filters, setFilters] = useState<FiltersType>({});
   const [sortedProducts, setSortedProducts] = useState<Product[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const { isCartOpen } = useCart(); // Ensure cart visibility
+
 
   const { data, loading, error, refetch } = useQuery(FILTER_PRODUCTS, {
     variables: {
@@ -85,6 +89,8 @@ const AllProductsPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       {loading && <LoadingOverlay />}
       
+       {/* Sidebar should always be present */}
+       {isCartOpen && <CartSidebar />}
       <button 
         className="md:hidden bg-newgreen text-white py-2 px-4 rounded-md mb-4" 
         onClick={() => setShowFilters(!showFilters)}

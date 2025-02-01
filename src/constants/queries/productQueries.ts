@@ -25,6 +25,18 @@ export const GET_PRODUCTS = gql`
   }
 `;
 
+export const GET_SERIES_PRODUCTS = gql`
+  query GetSeriesProducts($series: String!) {
+    getSeriesProducts(series: $series) {
+      id
+      name
+      images {
+        imageMain
+      }
+    }
+  }
+`;
+
 export const GET_PRODUCT_BY_ID = gql`
   query GetProductById($id: ID!) {
     getProductById(id: $id) {
@@ -50,6 +62,8 @@ export const GET_PRODUCT_BY_ID = gql`
     }
   }
 `
+
+
 
 export const FILTER_PRODUCTS = gql`
  query FilterProducts($fabric: [String], $priceRange: [Float], $series: [String], $finish: [String], $color: [String]) {

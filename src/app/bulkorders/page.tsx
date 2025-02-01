@@ -8,6 +8,7 @@ import Categories from "@/components/HomepageComponents/CategoriesHover";
 import CategoriesSection from "@/components/HomepageComponents/ShopByCategories";
 import BulkOrdersSEOSection from "@/components/BulkOrdersPageComponents/BulkOrderContent";
 import Footer from "@/components/HomepageComponents/Footer";
+import Hero from "@/components/HomepageComponents/Hero";
 
 const BulkOrdersPage: React.FC = () => {
   return (
@@ -16,7 +17,7 @@ const BulkOrdersPage: React.FC = () => {
       <Navbar />
 
       {/* Banner */}
-      <Banner />
+      <Hero />
 
       {/* Bulk Order Form Section */}
       <BulkOrderForm />

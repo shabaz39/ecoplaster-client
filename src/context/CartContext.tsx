@@ -6,12 +6,15 @@ interface CartItem {
   id: string;
   name: string;
   price: number;
+  originalPrice:number;
   quantity: number;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   cartCount: number;
+  isCartOpen: boolean;
+  toggleCart: () => void;
   addToCart: (product: CartItem) => void;
   removeFromCart: (productId: string) => void; // ✅ Add this function
   triggerCartAnimation: () => void;
@@ -30,6 +33,12 @@ export const useCart = () => {
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const toggleCart = () => {
+    setIsCartOpen((prev) => !prev);
+  };
+
 
   const addToCart = (product: CartItem) => {
     setCartItems((prev) => {
@@ -43,6 +52,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     setCartCount((prev) => prev + 1);
+    setIsCartOpen(true); // Open Sidebar on Add
+
   };
 
   const removeFromCart = (productId: string) => {
@@ -64,7 +75,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, cartCount, addToCart, removeFromCart, triggerCartAnimation }}>
+    <CartContext.Provider value={{ cartItems, cartCount, isCartOpen, toggleCart, addToCart, removeFromCart, triggerCartAnimation }}>
       {children}
     </CartContext.Provider>
   );

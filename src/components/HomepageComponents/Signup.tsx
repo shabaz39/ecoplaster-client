@@ -1,15 +1,10 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
+import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
-import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-
-
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-  }
-}
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -17,59 +12,32 @@ interface SignupModalProps {
 }
 
 const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
-  const [step, setStep] = useState(1); // Step 1: Enter number, Step 2: Verify OTP
- 
+  const [user, setUser] = useState<any>(null);
 
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth, // First argument: Firebase auth instance
-        "recaptcha-container", // Second argument: Container ID
-        {
-          size: "invisible", // Makes reCAPTCHA invisible
-          callback: () => {
-            console.log("reCAPTCHA verification successful!");
-          },
-        }
-      );;
-    }
-  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  const sendOTP = async () => {
-    if (phoneNumber.length === 10) {
-      setupRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-
-      try {
-        const result = await signInWithPhoneNumber(auth, `+91${phoneNumber}`, appVerifier);
-        setConfirmationResult(result);
-        setStep(2); // Move to OTP step
-      } catch (error) {
-        console.error("Error sending OTP:", error);
-      }
-    }
-  };
-
-  const verifyOTP = async () => {
+  const handleGoogleLogin = async () => {
     try {
-      const result = await confirmationResult.confirm(otp);
-      const idToken = await result.user.getIdToken();
-
-      console.log("Logged in user:", result.user);
-      console.log("ID Token:", idToken);
-      alert("Login successful!");
-
-      // Send the ID Token to your backend here via GraphQL mutation
-      // await loginWithOTP({ variables: { idToken } });
-
-      setStep(1); // Reset modal state
-      onClose(); // Close modal
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      console.log("User signed in:", result.user);
+      onClose(); // Close modal after login
     } catch (error) {
-      console.error("Error verifying OTP:", error);
-      alert("Invalid OTP!");
+      console.error("Google sign-in error:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -86,11 +54,11 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
         transition={{ type: "spring", stiffness: 100 }}
-        className="bg-white rounded-lg shadow-lg w-full lg:max-w-3xl lg:h-2/4 z-50"
+        className="bg-white rounded-lg shadow-lg w-full lg:max-w-md z-50"
       >
         {/* Modal Header */}
         <div className="flex justify-between items-center p-4 bg-newgreensecond text-white rounded-t-lg">
-          <h2 className="text-lg font-semibold">{step === 1 ? "Login/Signup" : "Verify OTP"}</h2>
+          <h2 className="text-lg font-semibold">{user ? "Welcome" : "Login / Signup"}</h2>
           <button onClick={onClose} className="text-white hover:text-newbeige">
             <X size={20} />
           </button>
@@ -98,48 +66,30 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose }) => {
 
         {/* Modal Body */}
         <div className="flex flex-col items-center p-6">
-          {step === 1 ? (
+          {user ? (
             <>
-              <h3 className="font-semibold text-lg text-gray-800 mb-4">Enter mobile number</h3>
-              <div className="flex items-center border rounded-lg overflow-hidden w-full md:w-2/3">
-                <span className="px-3 bg-gray-200 text-gray-900">+91</span>
-                <input
-                  type="text"
-                  placeholder="Mobile Number"
-                  maxLength={10}
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-gray-900 focus:outline-none"
-                />
-              </div>
+              <img src={user.photoURL} alt="Profile" className="w-16 h-16 rounded-full mb-2" />
+              <p className="text-lg font-semibold text-gray-800">{user.displayName}</p>
+              <p className="text-sm text-gray-500">{user.email}</p>
               <button
-                onClick={sendOTP}
-                className="w-full md:w-2/3 mt-4 py-2 font-semibold bg-newgreen text-white rounded-lg hover:bg-newgreensecond"
+                onClick={handleLogout}
+                className="w-full mt-4 py-2 font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
-                Get OTP
+                Logout
               </button>
             </>
           ) : (
             <>
-              <h3 className="font-semibold text-lg text-gray-800 mb-4">Enter OTP</h3>
-              <input
-                type="text"
-                placeholder="OTP"
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full md:w-2/3 px-3 py-2 text-gray-900 border rounded-lg focus:outline-none"
-              />
+              <h3 className="font-semibold text-lg text-gray-800 mb-4">Sign in with Google</h3>
               <button
-                onClick={verifyOTP}
-                className="w-full md:w-2/3 mt-4 py-2 font-semibold bg-newgreen text-white rounded-lg hover:bg-newgreensecond"
+                onClick={handleGoogleLogin}
+                className="w-full py-2 font-semibold bg-newgreen text-white rounded-lg hover:bg-newgreensecond flex items-center justify-center gap-2"
               >
-                Verify OTP
+                <img src="/google-logo.svg" alt="Google" className="w-5 h-5" />
+                Continue with Google
               </button>
             </>
           )}
-          {/* reCAPTCHA Container */}
-          <div id="recaptcha-container"></div>
         </div>
       </motion.div>
     </div>

@@ -1,4 +1,4 @@
-// components/ProductDescriptionComponents/ProductDescription.tsx
+// ProductDescription.tsx
 "use client";
 
 import React from "react";
@@ -26,33 +26,39 @@ const ProductDescription: React.FC<ProductProps> = ({ productId }) => {
 
   const product = data.getProductById;
   
-  // Ensure images object exists
   const processedImages = {
-    imageMain: product.images?.imageMain ? `/${product.images.imageMain}` : '',
-    imageArtTable: product.images?.imageArtTable ? `/${product.images.imageArtTable}` : '',
-    imageWall: product.images?.imageWall ? `/${product.images.imageWall}` : '',
-    imageBedroom: product.images?.imageBedroom ? `/${product.images.imageBedroom}` : '',
-    imageRoom: product.images?.imageRoom ? `/${product.images.imageRoom}` : '',
-    imageLivingRoom: product.images?.imageLivingRoom ? `/${product.images.imageLivingRoom}` : '',
+    imageMain: product.images?.imageMain || '',
+    imageArtTable: product.images?.imageArtTable || '',
+    imageWall: product.images?.imageWall || '',
+    imageBedroom: product.images?.imageBedroom || '',
+    imageRoom: product.images?.imageRoom || '',
+    imageLivingRoom: product.images?.imageLivingRoom || ''
   };
 
   return (
-    <div className="flex flex-col lg:flex-row bg-white text-black min-h-screen p-6">
-    {/* Left - Image Gallery */}
-    <div className="w-full lg:w-2/5">
-      <ProductGallery 
-        images={processedImages} 
-        name={product.name} 
-      />
-    </div>
-
-      {/* Right - Product Info */}
+    <div className="flex flex-col lg:flex-row bg-white text-black min-h-screen">
+      {/* Gallery Section - Increased width and added padding */}
       <div className="w-full lg:w-3/5 p-6">
+        <div className="sticky top-6">
+          <ProductGallery 
+            images={processedImages} 
+            name={product.name} 
+          />
+        </div>
+      </div>
+      
+      {/* Product Details Section */}
+      <div className="w-full lg:w-2/5 p-6 lg:pl-0">
         <ProductDetails product={product} />
         <PricingSection product={product} />
         <DeliveryCheck />
         <QuantitySelector />
-        <AddToCartButton productId={product.id} />
+        <AddToCartButton 
+          productId={product.id}
+          productName={product.name}
+          productPrice={product.price.offerPrice}
+          productOriginalPrice={Math.round(product.price.mrp)} // Round to avoid floating point issues
+        />
       </div>
     </div>
   );
