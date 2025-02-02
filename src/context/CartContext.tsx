@@ -15,7 +15,7 @@ interface CartContextType {
   cartCount: number;
   isCartOpen: boolean;
   toggleCart: () => void;
-  addToCart: (product: CartItem) => void;
+  addToCart: (product: CartItem, showSidebar?: boolean) => void;  // Updated signature
   removeFromCart: (productId: string) => void; // ✅ Add this function
   triggerCartAnimation: () => void;
 }
@@ -40,20 +40,23 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
 
-  const addToCart = (product: CartItem) => {
+  const addToCart = (product: CartItem, showSidebar: boolean = true) => {
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
       if (existingItem) {
         return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id 
+            ? { ...item, quantity: product.quantity } // Replace quantity instead of incrementing
+            : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, product]; // Add new item with specified quantity
     });
-
-    setCartCount((prev) => prev + 1);
-    setIsCartOpen(true); // Open Sidebar on Add
-
+  
+    setCartCount((prev) => prev + product.quantity);
+    if (showSidebar) {
+      setIsCartOpen(true);
+    }
   };
 
   const removeFromCart = (productId: string) => {

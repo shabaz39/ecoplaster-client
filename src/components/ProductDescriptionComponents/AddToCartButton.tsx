@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import { useRouter } from "next/navigation";
 import { ShoppingCart, ArrowRight } from "lucide-react";
@@ -10,17 +10,27 @@ interface AddToCartButtonProps {
   productName: string;
   productPrice: number;
   productOriginalPrice: number;
+  quantity: number;
 }
 
-const AddToCartButton: React.FC<AddToCartButtonProps> = ({ 
-  productId, 
-  productName, 
+const AddToCartButton: React.FC<AddToCartButtonProps> = ({
+  productId,
+  productName,
   productPrice,
-  productOriginalPrice
+  productOriginalPrice,
+  quantity
 }) => {
-  const { addToCart } = useCart();
+  const { cartItems, addToCart } = useCart();
   const router = useRouter();
-  const [isAdded, setIsAdded] = useState(false);
+  
+  // Check if product is already in cart
+  const existingItem = cartItems.find(item => item.id === productId);
+  const [isAdded, setIsAdded] = useState(!!existingItem);
+
+  // Update isAdded state when cart items change
+  useEffect(() => {
+    setIsAdded(!!cartItems.find(item => item.id === productId));
+  }, [cartItems, productId]);
 
   const handleAddToCart = () => {
     if (!isAdded) {
@@ -29,24 +39,23 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
         name: productName,
         price: productPrice,
         originalPrice: productOriginalPrice,
-        quantity: 1
-      });
+        quantity: quantity
+      }, true); // Show sidebar on initial add
+      
       setIsAdded(true);
-      // Trigger cart sidebar here if you have a toggle function in cart context
-      // toggleCart();
     } else {
       router.push("/checkout");
     }
   };
 
   return (
-    <button 
+    <button
       onClick={handleAddToCart}
       className={`w-full py-3 mt-6 rounded-lg flex items-center justify-center gap-2
                 transition-all duration-300 ${
-                  isAdded 
-                  ? "bg-newgreen hover:bg-newgreensecond" 
-                  : "bg-newgreensecond hover:bg-newgreen"
+                  isAdded
+                    ? "bg-newgreen hover:bg-newgreensecond"
+                    : "bg-newgreensecond hover:bg-newgreen"
                 }`}
     >
       <span className="text-white font-medium">

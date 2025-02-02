@@ -83,7 +83,7 @@ const DeliveryCheck: React.FC = () => {
   };
 
   return (
-    <div className="mt-4 max-w-md">
+    <div className="mt-4 max-w-md text-black">
       <label className="block text-gray-700 text-sm font-medium mb-2">
         Check Delivery Availability
       </label>
@@ -121,7 +121,7 @@ const DeliveryCheck: React.FC = () => {
       )}
 
       {deliveryInfo && (
-        <div className="mt-3 p-3 rounded-md bg-green-50 border border-green-200 text-green-700 flex items-start">
+        <div className="mt-3 p-3 rounded-md  border border-newgreensecond text-newgreensecond flex items-start">
           <Check className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
           <div>
             <p>Delivery available for {deliveryInfo.location?.district}, {deliveryInfo.location?.state}</p>

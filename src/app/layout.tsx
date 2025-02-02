@@ -8,6 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Navbar from "@/components/HomepageComponents/Navbar";
 import { CartProvider } from "@/context/CartContext";  // Import CartProvider
+import { SessionProvider } from "next-auth/react";
 
 
 const geistSans = localFont({

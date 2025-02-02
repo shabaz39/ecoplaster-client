@@ -13,7 +13,7 @@ interface PricingSectionProps {
 
 const PricingSection: React.FC<PricingSectionProps> = ({ product }) => {
   return (
-    <div className="mt-4">
+    <div className="mt-4 text-black">
       <span className="text-2xl font-bold text-green-600">
         ₹{product.price.offerPrice}
       </span>
