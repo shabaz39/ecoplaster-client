@@ -9,8 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.12.5",
-    "apollo-client": "^2.6.10",
+    "@apollo/client": "^3.12.8",
     "apollo-upload-client": "^18.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
