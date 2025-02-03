@@ -20,7 +20,7 @@ const Home: React.FC = () => {
   return (
     <div>
       <AnnouncementBanner/>
-      <Navbar/>
+                                                  \         <Navbar/>
       <Hero />
       <WhyEcoPlaster/>
       <CategoriesSection/>
