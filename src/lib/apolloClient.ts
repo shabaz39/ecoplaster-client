@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 
-const API_URL = 'http://localhost:4000'
+const API_URL = 'https://ecoplaster-server-1.onrender.com'
 
 const uploadLink = createUploadLink({
     uri: `${API_URL}/graphql`,
