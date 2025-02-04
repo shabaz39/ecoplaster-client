@@ -1,28 +1,28 @@
-// app/blog/[slug]/page.tsx
-import { Metadata } from 'next';
 import BlogPost from '@/components/BlogPostComponents/BlogPost';
+import { Metadata } from 'next';
 
-interface PageParams {
-  slug: string;
+// Explicitly define the expected structure for `params`
+interface PageProps {
+  params: { slug: string }; // Ensure `params` is correctly typed
+  searchParams?: Record<string, string | string[] | undefined>;
 }
 
-type Props = {
-  params: PageParams;
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+// ✅ Fix: Ensure that params is destructured correctly
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = params; // Ensure correct extraction
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
-    title: `Blog Title - ${params.slug}`,
-    description: `Description for ${params.slug}`,
+    title: `Blog Title - ${slug}`,
+    description: `Description for ${slug}`,
     openGraph: {
-      title: `Blog Title - ${params.slug}`,
-      description: `Description for ${params.slug}`,
+      title: `Blog Title - ${slug}`,
+      description: `Description for ${slug}`,
       type: 'article',
     },
   };
 }
 
-export default async function Page({ params }: Props) {
+// ✅ Fix: Remove unnecessary `async` and return `BlogPost` directly
+export default function Page({ params }: PageProps) {
   return <BlogPost slug={params.slug} />;
 }
