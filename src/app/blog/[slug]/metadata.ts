@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 
 // This is a dynamic metadata function
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } | Promise<{ slug: string }> }): Promise<Metadata> {
   // Fetch blog data here if needed
   return {
     title: 'Blog Title', // Replace with actual blog title

@@ -1,6 +1,11 @@
-// src/app/blog/[slug]/page.tsx
 import BlogPost from '@/components/BlogPostComponents/BlogPost';
 
-export default function Page({ params }: { params: { slug: string } }) {
+interface PageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export default function Page({ params }: PageProps) {
   return <BlogPost slug={params.slug} />;
 }

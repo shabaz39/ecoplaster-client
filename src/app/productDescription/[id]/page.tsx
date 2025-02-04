@@ -15,7 +15,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import ProductDescription from "@/components/ProductDescriptionComponents/ProductDescription";
 
 const ProductDescriptionPage = () => {
-  const params = useParams();
+  const params = useParams() as { id: string }; // Ensure params is an object with `id`
   const productId = params?.id ? String(params.id) : '';
 
   console.log('productID', productId)
