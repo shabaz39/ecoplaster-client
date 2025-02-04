@@ -1,11 +1,11 @@
 import BlogPost from '@/components/BlogPostComponents/BlogPost';
+import  PageProps  from 'next';  // Import Next.js PageProps type
 
-interface PageProps {
-  params: {
-    slug: string;
-  };
-}
+export default function Page({ params }: { params: { slug: string } }) {
+  // Ensure `params` is correctly destructured and accessed
+  if (!params || !params.slug) {
+    return <div>Error: Slug not found</div>;
+  }
 
-export default function Page({ params }: PageProps) {
   return <BlogPost slug={params.slug} />;
 }

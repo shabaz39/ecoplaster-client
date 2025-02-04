@@ -1,15 +1,14 @@
-// src/app/blog/[slug]/metadata.ts
 import type { Metadata } from 'next';
 
-// This is a dynamic metadata function
-export async function generateMetadata({ params }: { params: { slug: string } | Promise<{ slug: string }> }): Promise<Metadata> {
-  // Fetch blog data here if needed
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const { slug } = params;  // Ensure params is destructured
+
   return {
-    title: 'Blog Title', // Replace with actual blog title
-    description: 'Blog description', // Replace with actual description
+    title: `Blog Title - ${slug}`,
+    description: `Description for ${slug}`,
     openGraph: {
-      title: 'Blog Title',
-      description: 'Blog description',
+      title: `Blog Title - ${slug}`,
+      description: `Description for ${slug}`,
       type: 'article',
     },
   };
