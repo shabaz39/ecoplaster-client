@@ -1,12 +1,14 @@
-import UserDashboard from '@/components/UserDashboardComponenets/UserDashboard'
-import React from 'react'
+'use client';
 
-const UserDashboardPage: React.FC = () => {
-    return (
-    <div>
-        <UserDashboard/>
-    </div>
-  )
-}
+import UserDashboard from '../../components/UserDashboardComponenets/UserDashboard'
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-export default UserDashboardPage
+const UserDashboardPage = () => {
+  return (
+    <ProtectedRoute allowedRoles={['user', 'admin']}>
+      <UserDashboard />
+    </ProtectedRoute>
+  );
+};
+
+export default UserDashboardPage;

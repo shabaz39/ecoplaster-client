@@ -1,20 +1,44 @@
 "use client";
 
 import React from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import {
+  ShoppingBag,
+  MessageCircle,
+  Gift,
+  Wallet,
+  MapPin,
+  LogOut,
+  HelpCircle,
+  User
+} from "lucide-react";
+import { signOut } from "next-auth/react";
 
 const UserDashboard: React.FC = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen lg:px-64">
       {/* Header Section */}
       <header className="bg-cream px-6 py-8 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-gray-700">Good Afternoon,</h1>
-          <h2 className="text-xl font-semibold text-green">Mohammed Rafi</h2>
+          <h1 className="text-lg font-bold text-gray-700">
+            Good {new Date().getHours() < 12 ? 'Morning' : 
+                  new Date().getHours() < 17 ? 'Afternoon' : 'Evening'},
+          </h1>
+          <h2 className="text-xl font-semibold text-green">
+            {session?.user?.name}
+          </h2>
+          <p className="text-sm text-gray-600">{session?.user?.email}</p>
         </div>
         <div className="text-green">
-          <button className="text-lg">
-            <span role="img" aria-label="user-icon">👤</span>
-          </button>
+          <User size={24} />
         </div>
       </header>
 
@@ -22,31 +46,30 @@ const UserDashboard: React.FC = () => {
       <section className="px-6 py-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-700 flex items-center">
-            <span role="img" aria-label="box-icon" className="mr-2">📦</span>
+            <ShoppingBag className="mr-2" size={20} />
             Orders
           </h3>
-          <a href="#" className="text-newgreensecond font-medium hover:underline">
+          <button 
+            onClick={() => router.push('/orders')}
+            className="text-newgreensecond font-medium hover:underline"
+          >
             See All
-          </a>
+          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {["Order1", "Order2"].map((order, index) => (
             <div key={index} className="bg-white p-4 rounded-lg shadow-sm">
-              <img
-                src={`/${order}.png`}
-                alt={order}
-                className="w-full h-32 object-cover rounded-md"
-              />
+              <div className="w-full h-32 bg-gray-200 rounded-md mb-2"></div>
               <p className="mt-2 text-gray-700 font-semibold">
                 {order} - Delivered
               </p>
               <div className="mt-2 flex justify-between text-sm">
-                <a href="#" className="text-newgreensecond hover:underline">
+                <button className="text-newgreensecond hover:underline">
                   Order Details
-                </a>
-                <a href="#" className="text-newgreensecond hover:underline">
+                </button>
+                <button className="text-newgreensecond hover:underline">
                   Get Help
-                </a>
+                </button>
               </div>
             </div>
           ))}
@@ -55,38 +78,58 @@ const UserDashboard: React.FC = () => {
 
       {/* Chat and FAQs Section */}
       <section className="px-6 py-8">
-        <h3 className="text-lg font-semibold text-gray-700">Chat and FAQs</h3>
-        <div className="flex gap-4 mt-4">
-          {["Chat With Us", "FAQs", "Contact Us"].map((item, index) => (
-            <div
+        <h3 className="text-lg font-semibold text-gray-700 flex items-center">
+          <MessageCircle className="mr-2" size={20} />
+          Support
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {[
+            { title: "Chat With Us", icon: MessageCircle },
+            { title: "FAQs", icon: HelpCircle },
+            { title: "Contact Us", icon: MessageCircle }
+          ].map((item, index) => (
+            <button
               key={index}
-              className="flex-1 bg-cream p-4 rounded-lg shadow-sm"
+              className="bg-cream p-4 rounded-lg shadow-sm hover:bg-newgreensecond hover:text-white transition-colors"
             >
-              <p className="text-gray-700 font-semibold">{item}</p>
-              <p className="text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <item.icon size={20} />
+                <p className="font-semibold">{item.title}</p>
+              </div>
+              <p className="text-sm mt-2">
                 Quick access to support and information.
               </p>
-            </div>
+            </button>
           ))}
         </div>
       </section>
 
       {/* Benefits Section */}
       <section className="px-6 py-8">
-        <h3 className="text-lg font-semibold text-gray-700">Your Benefits</h3>
+        <h3 className="text-lg font-semibold text-gray-700 flex items-center">
+          <Gift className="mr-2" size={20} />
+          Your Benefits
+        </h3>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {["Wallet", "Rewards", "Refer & Earn"].map((item, index) => (
-            <div
+          {[
+            { title: "Wallet", icon: Wallet },
+            { title: "Rewards", icon: Gift },
+            { title: "Refer & Earn", icon: Gift }
+          ].map((item, index) => (
+            <button
               key={index}
               className={`p-4 rounded-lg ${
                 index % 2 === 0 ? "bg-beige" : "bg-mint"
-              } shadow-sm`}
+              } shadow-sm hover:opacity-90 transition-opacity`}
             >
-              <h4 className="text-gray-700 font-semibold">{item}</h4>
-              <p className="text-sm text-gray-600">
-                Access your {item.toLowerCase()} details.
+              <div className="flex items-center gap-2">
+                <item.icon size={20} />
+                <h4 className="text-gray-700 font-semibold">{item.title}</h4>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Access your {item.title.toLowerCase()} details.
               </p>
-            </div>
+            </button>
           ))}
         </div>
       </section>
@@ -94,13 +137,22 @@ const UserDashboard: React.FC = () => {
       {/* My Account Section */}
       <section className="px-6 py-8">
         <h3 className="text-lg font-semibold text-gray-700">My Account</h3>
-        <ul className="mt-4 space-y-2">
-          {["Manage Saved Addresses", "Sign Out"].map((item, index) => (
-            <li key={index} className="text-newgreensecond hover:underline">
-              {item}
-            </li>
-          ))}
-        </ul>
+        <div className="mt-4 space-y-2">
+          <button 
+            onClick={() => router.push('/addresses')}
+            className="flex items-center gap-2 text-newgreensecond hover:underline w-full"
+          >
+            <MapPin size={20} />
+            Manage Saved Addresses
+          </button>
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center gap-2 text-red-500 hover:underline w-full"
+          >
+            <LogOut size={20} />
+            Sign Out
+          </button>
+        </div>
       </section>
     </div>
   );

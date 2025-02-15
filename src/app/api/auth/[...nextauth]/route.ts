@@ -1,5 +1,3 @@
-// app/api/auth/[...nextauth]/route.ts
-"use client"
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -11,20 +9,20 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile }) {
-      // Pass auth details to token
+    async jwt({ token, account }) {
       if (account) {
-        token.accessToken = account.access_token;
+        token.role = token.email === "ecoplaster1@gmail.com" ? "admin" : "user";
       }
       return token;
     },
     async session({ session, token }) {
-      // Add auth details to session
-      return {
-        ...session,
-        accessToken: token.accessToken,
-      };
+      session.user.role = token.role ?? "user";
+      return session;
     },
+  },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
   },
 });
 

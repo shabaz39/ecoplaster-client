@@ -14,6 +14,8 @@ import {
   DELETE_BLOG,
   PUBLISH_BLOG
 } from '@/constants/queries/blogQueries';
+import { useSession } from 'next-auth/react';
+
 
 const CREATE_ANNOUNCEMENT = gql`
   mutation CreateAnnouncement($message: String!) {
@@ -55,6 +57,7 @@ interface EditingAnnouncement {
 }
 
 const AdminDashboard: React.FC = () => {
+  const { data: session } = useSession();
 
 
 
@@ -280,17 +283,20 @@ const handlePublishBlog = async (id: string) => {
 
   return (
     <div className="bg-gray-50 min-h-screen lg:px-64">
-      <header className="bg-cream px-6 py-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-gray-700">Welcome Back,</h1>
-          <h2 className="text-xl font-semibold text-green">Admin</h2>
-        </div>
-        <div className="text-green">
-          <button className="text-lg">
-            <span role="img" aria-label="admin-icon">🛠️</span>
-          </button>
-        </div>
-      </header>
+    <header className="bg-cream px-6 py-8 flex items-center justify-between">
+      <div>
+        <h1 className="text-lg font-bold text-gray-700">Welcome Back,</h1>
+        <h2 className="text-xl font-semibold text-green">
+          {session?.user?.name || 'Admin'}
+        </h2>
+        <p className="text-sm text-gray-600">Role: {session?.user?.role}</p>
+      </div>
+      <div className="text-green">
+        <button className="text-lg">
+          <span role="img" aria-label="admin-icon">🛠️</span>
+        </button>
+      </div>
+    </header>
       <section className="px-6 py-8">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-700">Announcements</h3>

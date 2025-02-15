@@ -22,7 +22,7 @@ const CheckoutPage = () => {
     phone: "",
   });
   const [paymentMethod, setPaymentMethod] = useState("card");
-
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/checkout';
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -180,7 +180,12 @@ const CheckoutPage = () => {
       </div>
 
       {/* Login Modal */}
-      <SignupModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+   {/* Login Modal */}
+   <SignupModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)}
+        callbackUrl={currentPath}  // Pass the current path
+      />
     </div>
   );
 };
