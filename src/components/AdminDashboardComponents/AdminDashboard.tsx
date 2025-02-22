@@ -109,6 +109,8 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteBlog = async (id: string) => {
+
+    
     if (!window.confirm('Are you sure you want to delete this blog?')) return;
     try {
       await deleteBlog({ variables: { id } });
