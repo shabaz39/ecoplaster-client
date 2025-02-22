@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import Link from "next/link";
 
 const Footer: React.FC = () => {
   return (
@@ -31,27 +32,25 @@ const Footer: React.FC = () => {
           {/* Policies */}
           <div className="flex-1">
             <ul className="space-y-2 text-sm text-gray-300">
-              <li>FAQs</li>
-              <li>Shipping & Location</li>
-              <li>Payment, Returns & Refunds</li>
-              <li>Warranty</li>
-              <li>Terms Of Service</li>
-              <li>Privacy Policy</li>
+            <li><Link href="/faqs">FAQs</Link></li>
+               <li><Link href="/shippingpolicy">Shipping & Location</Link></li>
+               <li><Link href="/refundpolicy">Payment, Returns & Refunds</Link></li>
+               <li><Link href="/termsofservice">Terms Of Service</Link></li>
+              <li><Link href="/privacypolicy">Privacy Policy</Link></li>
             </ul>
           </div>
           {/* Help */}
           <div className="flex-1 text-sm text-gray-300">
-            <p>Contact us at +91 988333123</p>
+            <p>Contact us at +91 94296 92999</p>
             <p className="mt-2">
               We are here to help you every day between 9:30 AM to 7:30 PM.
             </p>
             <p className="mt-4">
               Registered Office, Manufacturer & Packer:
               <br />
-              EcoPlaster Innovations Pvt. Ltd.
+              RXW Imports & Exports
               <br />
-              3rd Floor, Umiya Emporium, Hosur Road, Bangalore, India
-            </p>
+              2nd Floor, police station, 14-40/A, Dhanalaxmi Nagar, beside MR Palli, Vk Puram, Tirupati, Andhra Pradesh 517501            </p>
           </div>
         </div>
       </div>
@@ -107,7 +106,7 @@ const Footer: React.FC = () => {
       <div className="bg-white text-black text-center py-4">
         <p className="text-sm">
           © 2025 EcoPlaster. All Rights Reserved. | EcoPlaster name and logo are
-          registered trademarks owned by EcoPlaster Innovations Pvt. Ltd.
+          registered trademarks owned by RXW Imports & Exports
         </p>
       </div>
     </footer>

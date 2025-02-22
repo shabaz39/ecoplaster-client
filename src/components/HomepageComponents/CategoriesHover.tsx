@@ -18,18 +18,27 @@ const categories = [
   {
     name: "Products",
     links: [
-      "EcoPlaster Premium Finish",
-      "Natural Lime-Based Plaster",
-      "Breathable Clay Plaster",
-      "Water-Resistant Exterior Plaster",
-      "Smooth Venetian Plaster",
+      { name: "Silk series", href: "/allproducts" },
+      { name: "Gold series", href: "/allproducts" },
+      { name: "Chips series", href: "/allproducts" },
+      { name: "Dual series", href: "/allproducts" },
+      { name: "Cotton series", href: "/allproducts" },
+      { name: "Cotton & Silk series", href: "/allproducts" },
+      { name: "Glitter series", href: "/allproducts" },
+      { name: "Multi-Color series", href: "/allproducts" },
     ],
   },
   {
     name: "About Us",
     links: [
-      { name: "Office Address: 123 Greenway Street, EcoCity, Country - 56789", href: "#" },
-      { name: "Mission: Revolutionizing wall finishes with sustainable & innovative solutions.", href: "#" },
+      {
+        name: "Office Address: 2nd Floor, police station, 14-40/A, Dhanalaxmi Nagar, beside MR Palli, Vk Puram, Tirupati, Andhra Pradesh 517501",
+        href: "#",
+      },
+      {
+        name: "Mission: Revolutionizing wall finishes with sustainable & innovative solutions.",
+        href: "#",
+      },
     ],
     route: "/aboutus", // Navigation route
   },
@@ -78,7 +87,6 @@ const Categories: React.FC = () => {
         <ul className="flex justify-around text-white font-medium relative">
           {categories.map((category) => (
             <li key={category.name} className="relative group">
-              {/* Category Name with Router Navigation */}
               {category.route ? (
                 <button
                   onClick={() => navigateTo(category.route)}
