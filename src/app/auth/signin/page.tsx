@@ -4,8 +4,9 @@ export const dynamic = 'force-dynamic';
 
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function SignIn() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
@@ -28,5 +29,13 @@ export default function SignIn() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }
