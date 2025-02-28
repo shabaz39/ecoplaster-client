@@ -8,6 +8,7 @@ import UserList from './UserManagement/UserList';
 import DealerList from './DealerManagement/DealerList';
 import AnnouncementList from './Announcements/AnnouncementList';
 import ContactList from './ContactManagement/ContactList';
+import ProductManagement from './ProductManagement/ProductManagement';
 import { BlogForm } from '@/components/BlogPostComponents/BlogForm';
 import { BlogList } from '@/components/BlogPostComponents/BlogList';
 import { BlogFormData, IBlog } from '@/types/blog.types';
@@ -44,6 +45,7 @@ const AdminDashboard: React.FC = () => {
 
   const tabs: TabType[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'products', label: 'Products', icon: '📦' },
     { id: 'announcements', label: 'Announcements', icon: '📢' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'dealers', label: 'Dealers', icon: '🏪' },
@@ -109,8 +111,6 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteBlog = async (id: string) => {
-
-    
     if (!window.confirm('Are you sure you want to delete this blog?')) return;
     try {
       await deleteBlog({ variables: { id } });
@@ -177,6 +177,8 @@ const AdminDashboard: React.FC = () => {
             <ControlPanel />
           </>
         )}
+
+        {activeTab === 'products' && <ProductManagement />}
 
         {activeTab === 'announcements' && <AnnouncementList />}
         
