@@ -2,15 +2,27 @@
 
 import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
-import { CreditCard, Truck, CheckCircle, ArrowLeft } from "lucide-react";
+import { CreditCard, Truck, CheckCircle, ArrowLeft, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import SignupModal from "../../components/HomepageComponents/Signup"; // Google Login Modal
+import { useLazyQuery } from "@apollo/client";
+import { VALIDATE_PROMO_CODE } from "@/constants/queries/promotionQueries";
+import { toast } from "react-toastify";
+
+interface Promotion {
+  id: string;
+  title: string;
+  code: string;
+  discountType: 'PERCENTAGE' | 'FIXED';
+  discountValue: number;
+  minimumPurchase: number;
+}
 
 const CheckoutPage = () => {
   const { cartItems } = useCart();
-  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -23,6 +35,70 @@ const CheckoutPage = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState("card");
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/checkout';
+  
+  // Promotion code state
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null);
+  const [shippingFee] = useState(50); // Fixed shipping fee
+
+  // GraphQL query for promotion validation
+  const [validatePromoCode, { loading: validatingPromo }] = useLazyQuery(VALIDATE_PROMO_CODE, {
+    onCompleted: (data) => {
+      console.log('Promotion validation response:', data);
+      if (data?.validatePromoCode) {
+        const promotion = data.validatePromoCode;
+        setAppliedPromo(promotion);
+        
+        // Check minimum purchase requirement
+        if (subtotal < promotion.minimumPurchase) {
+          toast.info(`This promotion requires a minimum purchase of ₹${promotion.minimumPurchase}`);
+        } else {
+          toast.success('Promotion code applied successfully!');
+        }
+        
+        setPromoCode("");
+      }
+    },
+    onError: (error) => {
+      console.error('Promo validation error:', error);
+      toast.error(error.message || 'Invalid promotion code');
+    },
+    fetchPolicy: 'network-only' // Add this to force a network request instead of using cache
+  });
+
+  // Calculate discount amount
+  const calculateDiscount = () => {
+    if (!appliedPromo) return 0;
+    
+    // Check if subtotal meets minimum purchase requirement
+    if (subtotal < appliedPromo.minimumPurchase) {
+      return 0;
+    }
+    
+    return appliedPromo.discountType === 'PERCENTAGE'
+      ? (subtotal * appliedPromo.discountValue / 100)
+      : Math.min(appliedPromo.discountValue, subtotal); // Cap fixed discount at subtotal
+  };
+  
+  const discount = calculateDiscount();
+  const totalPrice = subtotal + shippingFee - discount;
+  
+  const handleApplyPromoCode = () => {
+    if (!promoCode.trim()) {
+      toast.error('Please enter a promotion code');
+      return;
+    }
+    
+    console.log('Validating promo code:', promoCode.trim());
+    validatePromoCode({ 
+      variables: { code: promoCode.trim() } 
+    });
+  };
+  
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -38,12 +114,26 @@ const CheckoutPage = () => {
     if (!user) {
       setIsLoginOpen(true); // Show login modal if not logged in
     } else {
+      // Here you would typically submit the order with the promotion information
+      const orderData = {
+        shippingInfo,
+        paymentMethod,
+        cartItems,
+        subtotal,
+        discount,
+        shippingFee,
+        totalPrice,
+        promotionId: appliedPromo?.id
+      };
+      
+      console.log('Order data:', orderData);
+      
       router.push("/payment"); // Redirect to payment page if logged in
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-black">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center">
@@ -159,9 +249,70 @@ const CheckoutPage = () => {
               ))}
             </div>
 
+            {/* Promotion Code Section */}
+            <div className="border-t pt-4 pb-4">
+              <div className="flex items-center mb-2">
+                <Tag size={16} className="mr-2 text-newgreensecond" />
+                <h3 className="text-sm font-medium text-gray-700">Promotion Code</h3>
+              </div>
+              
+              {appliedPromo ? (
+                <div className="flex items-center justify-between bg-green-50 p-3 rounded-md">
+                  <div>
+                    <span className="font-medium text-green-700">{appliedPromo.code}</span>
+                    <p className="text-xs text-green-600">
+                      {appliedPromo.title}: {appliedPromo.discountType === 'PERCENTAGE' 
+                        ? `${appliedPromo.discountValue}% off` 
+                        : `₹${appliedPromo.discountValue} off`}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={handleRemovePromo}
+                    className="text-xs text-red-600 hover:text-red-800"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="Enter promo code"
+                    className="flex-1 p-2 text-sm border rounded-l-md focus:outline-none focus:ring-1 focus:ring-newgreensecond"
+                  />
+                  <button
+                    onClick={handleApplyPromoCode}
+                    disabled={validatingPromo}
+                    className="bg-newgreensecond text-white px-3 py-2 rounded-r-md text-sm hover:bg-newgreen disabled:opacity-50"
+                  >
+                    {validatingPromo ? 'Applying...' : 'Apply'}
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Price Breakdown */}
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between text-gray-600">
+                <span>Subtotal</span>
+                <span>₹{subtotal.toLocaleString()}</span>
+              </div>
+              
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>-₹{discount.toLocaleString()}</span>
+                </div>
+              )}
+              
+              <div className="flex justify-between text-gray-600">
+                <span>Shipping</span>
+                <span>₹{shippingFee.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between text-black font-medium pt-2 border-t mt-2">
                 <span>Total</span>
                 <span>₹{totalPrice.toLocaleString()}</span>
               </div>
@@ -180,8 +331,7 @@ const CheckoutPage = () => {
       </div>
 
       {/* Login Modal */}
-   {/* Login Modal */}
-   <SignupModal 
+      <SignupModal 
         isOpen={isLoginOpen} 
         onClose={() => setIsLoginOpen(false)}
         callbackUrl={currentPath}  // Pass the current path

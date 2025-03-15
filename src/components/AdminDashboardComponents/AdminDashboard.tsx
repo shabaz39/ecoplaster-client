@@ -1,3 +1,4 @@
+// ecoplaster-client/src/components/AdminDashboardComponents/AdminDashboard.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -9,6 +10,7 @@ import DealerList from './DealerManagement/DealerList';
 import AnnouncementList from './Announcements/AnnouncementList';
 import ContactList from './ContactManagement/ContactList';
 import ProductManagement from './ProductManagement/ProductManagement';
+import PromotionManagement from './PromotionManagement/PromotionManagement';
 import { BlogForm } from '@/components/BlogPostComponents/BlogForm';
 import { BlogList } from '@/components/BlogPostComponents/BlogList';
 import { BlogFormData, IBlog } from '@/types/blog.types';
@@ -46,6 +48,7 @@ const AdminDashboard: React.FC = () => {
   const tabs: TabType[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'products', label: 'Products', icon: '📦' },
+    { id: 'promotions', label: 'Promotions', icon: '🏷️' },
     { id: 'announcements', label: 'Announcements', icon: '📢' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'dealers', label: 'Dealers', icon: '🏪' },
@@ -179,6 +182,8 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'products' && <ProductManagement />}
+        
+        {activeTab === 'promotions' && <PromotionManagement />}
 
         {activeTab === 'announcements' && <AnnouncementList />}
         

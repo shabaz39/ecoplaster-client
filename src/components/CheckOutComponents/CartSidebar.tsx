@@ -1,22 +1,36 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { X, ChevronLeft, MapPin, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 const CartSidebar = () => {
-  const { cartItems, isCartOpen, toggleCart } = useCart();
+  const { cartItems, isCartOpen, toggleCart, removeFromCart, shippingAddress, updateShippingAddress } = useCart();
   const router = useRouter();
   const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  
+  // State for address update form
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [tempZip, setTempZip] = useState(shippingAddress?.zip || '');
+  const [tempCity, setTempCity] = useState(shippingAddress?.city || '');
+
+  // Handle saving the new address
+  const handleSaveAddress = () => {
+    updateShippingAddress({
+      zip: tempZip,
+      city: tempCity
+    });
+    setShowAddressForm(false);
+  };
 
   return (
     <div
-  className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-lg z-50 transform ${
-    isCartOpen ? "translate-x-0" : "translate-x-full"
-  } transition-transform duration-300`}
->
+      className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-lg z-50 transform ${
+        isCartOpen ? "translate-x-0" : "translate-x-full"
+      } transition-transform duration-300`}
+    >
       {/* Overlay */}
       {isCartOpen && (
         <div 
@@ -51,13 +65,60 @@ const CartSidebar = () => {
           {/* Delivery Location */}
           <div className="flex items-center gap-3 text-sm bg-gray-50 p-4 rounded-lg">
             <MapPin size={18} className="text-newgreensecond" />
-            <div className="flex-1">
-              <span className="text-gray-600">Delivering to:</span>
-              <span className="ml-2 font-medium text-black">516006, Kadappah</span>
-            </div>
-            <button className="text-newgreensecond font-medium hover:text-newgreen">
-              CHANGE
-            </button>
+            
+            {showAddressForm ? (
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={tempZip}
+                    onChange={(e) => setTempZip(e.target.value)}
+                    placeholder="ZIP/Postal Code"
+                    className="flex-1 p-2 text-sm border rounded"
+                  />
+                  <input
+                    type="text"
+                    value={tempCity}
+                    onChange={(e) => setTempCity(e.target.value)}
+                    placeholder="City"
+                    className="flex-1 p-2 text-sm border rounded"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button 
+                    onClick={() => setShowAddressForm(false)}
+                    className="text-gray-500 text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleSaveAddress}
+                    className="text-newgreensecond font-medium text-sm"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1">
+                  <span className="text-gray-600">Delivering to:</span>
+                  {shippingAddress && shippingAddress.zip && shippingAddress.city ? (
+                    <span className="ml-2 font-medium text-black">
+                      {shippingAddress.zip}, {shippingAddress.city}
+                    </span>
+                  ) : (
+                    <span className="ml-2 text-gray-400 italic">Set your delivery location</span>
+                  )}
+                </div>
+                <button 
+                  onClick={() => setShowAddressForm(true)} 
+                  className="text-newgreensecond font-medium hover:text-newgreen"
+                >
+                  {shippingAddress && shippingAddress.zip ? 'CHANGE' : 'ADD'}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -73,7 +134,10 @@ const CartSidebar = () => {
                   <div className="flex-1">
                     <div className="flex justify-between mb-2">
                       <h3 className="font-medium text-black">{item.name}</h3>
-                      <button className="p-1 hover:bg-red-50 rounded-full transition-colors">
+                      <button 
+                        onClick={() => removeFromCart(item.id)}
+                        className="p-1 hover:bg-red-50 rounded-full transition-colors"
+                      >
                         <X size={16} className="text-gray-400 hover:text-red-500" />
                       </button>
                     </div>
@@ -81,11 +145,24 @@ const CartSidebar = () => {
                     <div className="flex justify-between items-end mt-2">
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center border rounded-md bg-gray-50">
-                          <button className="px-3 py-1 hover:bg-gray-100 text-gray-500">-</button>
+                          <button 
+                            onClick={() => removeFromCart(item.id)}
+                            className="px-3 py-1 hover:bg-gray-100 text-gray-500"
+                          >
+                            -
+                          </button>
                           <span className="px-4 py-1 font-medium text-black border-x bg-white">
                             {item.quantity}
                           </span>
-                          <button className="px-3 py-1 hover:bg-gray-100 text-gray-500">+</button>
+                          <button 
+                            onClick={() => {
+                              const updatedItem = { ...item, quantity: 1 };
+                              addToCart(updatedItem, false);
+                            }}
+                            className="px-3 py-1 hover:bg-gray-100 text-gray-500"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
                       <div className="text-right">
@@ -143,7 +220,7 @@ const CartSidebar = () => {
           </button>
         </div>
       </div>
-      </div>
+    </div>
   );
 };
 

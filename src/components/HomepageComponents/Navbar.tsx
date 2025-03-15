@@ -57,10 +57,10 @@ const Navbar: React.FC = () => {
       <SignupModal isOpen={isModalOpen} onClose={toggleModal} />
       <DealerModal isOpen={isDealerModalOpen} onClose={() => setIsDealerModalOpen(false)} />
 
-      <header className="bg-newgreensecond text-white shadow-md relative z-40">
+      <header className="bg-newgreensecond text-white shadow-md relative z-40 w-full">
         {/* Main Navbar */}
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between px-4 py-4">
+        <div className="max-w-[2000px] w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-4">
             {/* Left Section */}
             <div className="flex items-center gap-4">
               <button 
@@ -79,7 +79,7 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Center Section (Search Bar for Desktop) */}
-            <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
+            <div className="hidden lg:flex flex-1 max-w-5xl mx-8">
               <SearchBar />
             </div>
 
@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
               <div className="hidden lg:flex items-center gap-6">
                 <button 
                   onClick={() => setIsDealerModalOpen(true)}
-                  className="text-white hover:text-newbeige transition-colors"
+                  className="text-white hover:text-newbeige transition-colors whitespace-nowrap"
                 >
                   Become a Dealer
                 </button>
@@ -134,38 +134,39 @@ const Navbar: React.FC = () => {
 
                 {/* User Section */}
                 <div className="relative flex items-center">
-  <button 
-    className="flex items-center text-white hover:text-newbeige" 
-    onClick={toggleModal}
-  >
-    <User size={20} />
-    {!session?.user && <span className="ml-2 hidden sm:inline">Login</span>}
-  </button>
+                  <button 
+                    className="flex items-center text-white hover:text-newbeige" 
+                    onClick={session?.user ? handleDashboardRedirect : toggleModal}
+                  >
+                    <User size={20} />
+                    {!session?.user && <span className="ml-2 hidden sm:inline">Login</span>}
+                  </button>
 
-  {session?.user && (
-    <div className="hidden sm:flex items-center space-x-2 ml-2">
-      {/* Truncate long names */}
-      <span className="text-white max-w-[100px] truncate">
-        {session.user.name}
-      </span>
-      {isAdmin(session.user.email) ? (
-        <Link 
-          href="/adminDashboard" 
-          className="text-xs bg-yellow-500 text-black px-2 py-1 rounded hover:bg-yellow-400 whitespace-nowrap"
-        >
-          Admin
-        </Link>
-      ) : (
-        <Link 
-          href="/userdashboard" 
-          className="text-xs bg-newgreen text-white px-2 py-1 rounded hover:bg-newgreensecond whitespace-nowrap"
-        >
-          Dashboard
-        </Link>
-      )}
-    </div>
-  )}
-</div>
+                  {session?.user && (
+                    <div className="hidden sm:flex items-center space-x-2 ml-2">
+                      {/* Truncate long names */}
+                      <span className="text-white max-w-[100px] truncate">
+                        {session.user.name}
+                      </span>
+                      {isAdmin(session.user.email) ? (
+                        <Link 
+                          href="/adminDashboard" 
+                          className="text-xs bg-yellow-500 text-black px-2 py-1 rounded hover:bg-yellow-400 whitespace-nowrap"
+                        >
+                          Admin
+                        </Link>
+                      ) : (
+                        <Link 
+                          href="/userdashboard" 
+                          className="text-xs bg-newgreen text-white px-2 py-1 rounded hover:bg-newgreensecond whitespace-nowrap"
+                        >
+                          Dashboard
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
                 {/* Cart Icon */}
                 <button 
                   className="relative text-white hover:text-newbeige" 
@@ -198,7 +199,7 @@ const Navbar: React.FC = () => {
           )}
 
           {/* Categories Bar */}
-          <div className="hidden sm:block border-t border-white/10">
+          <div className="hidden sm:block border-t border-white/10 w-full">
             <Categories />
           </div>
 

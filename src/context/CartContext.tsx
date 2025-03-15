@@ -1,13 +1,18 @@
 "use client";
 
-import React, { createContext, useState, ReactNode, useContext } from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 
 interface CartItem {
   id: string;
   name: string;
   price: number;
-  originalPrice:number;
+  originalPrice: number;
   quantity: number;
+}
+
+interface ShippingAddress {
+  zip: string;
+  city: string;
 }
 
 interface CartContextType {
@@ -15,9 +20,11 @@ interface CartContextType {
   cartCount: number;
   isCartOpen: boolean;
   toggleCart: () => void;
-  addToCart: (product: CartItem, showSidebar?: boolean) => void;  // Updated signature
-  removeFromCart: (productId: string) => void; // ✅ Add this function
+  addToCart: (product: CartItem, showSidebar?: boolean) => void;
+  removeFromCart: (productId: string) => void;
   triggerCartAnimation: () => void;
+  shippingAddress: ShippingAddress;
+  updateShippingAddress: (address: ShippingAddress) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -34,11 +41,52 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    zip: '',
+    city: ''
+  });
+
+  // Load cart and shipping address from localStorage on component mount
+  useEffect(() => {
+    // Load cart items
+    try {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(parsedCart);
+        
+        // Update cart count based on loaded items
+        const count = parsedCart.reduce((total: number, item: CartItem) => total + item.quantity, 0);
+        setCartCount(count);
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+    }
+    
+    // Load shipping address
+    try {
+      const savedAddress = localStorage.getItem('shippingAddress');
+      if (savedAddress) {
+        setShippingAddress(JSON.parse(savedAddress));
+      }
+    } catch (error) {
+      console.error('Error loading shipping address from localStorage:', error);
+    }
+  }, []);
+
+  // Save cart to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  // Save shipping address to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('shippingAddress', JSON.stringify(shippingAddress));
+  }, [shippingAddress]);
 
   const toggleCart = () => {
     setIsCartOpen((prev) => !prev);
   };
-
 
   const addToCart = (product: CartItem, showSidebar: boolean = true) => {
     setCartItems((prev) => {
@@ -73,13 +121,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCartCount((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
+  const updateShippingAddress = (address: ShippingAddress) => {
+    setShippingAddress(address);
+  };
+
   const triggerCartAnimation = () => {
     // Animation logic (if needed)
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, cartCount, isCartOpen, toggleCart, addToCart, removeFromCart, triggerCartAnimation }}>
+    <CartContext.Provider 
+      value={{ 
+        cartItems, 
+        cartCount, 
+        isCartOpen, 
+        toggleCart, 
+        addToCart, 
+        removeFromCart, 
+        triggerCartAnimation,
+        shippingAddress,
+        updateShippingAddress
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
+
+export default CartContext;

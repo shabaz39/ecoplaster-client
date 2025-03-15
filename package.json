@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.12.8",
+    "@heroicons/react": "^2.2.0",
     "apollo-upload-client": "^18.0.1",
     "autoprefixer": "^10.4.20",
     "date-fns": "^4.1.0",
@@ -19,6 +20,7 @@
     "graphql": "^16.10.0",
     "graphql-upload": "^17.0.0",
     "graphql-upload-ts": "^2.1.2",
+    "heroicons": "^2.2.0",
     "india-pincode-lookup": "^1.0.3",
     "lodash": "^4.17.21",
     "lucide-react": "^0.462.0",
