@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Product } from '../../types/product.types';
-import { ShoppingCart, CreditCard, Plus, Minus } from 'lucide-react';
+import { IProduct } from '../../types/product.types';
+import { ShoppingCart, CreditCard, Plus, Minus, Heart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
+import { useSession } from 'next-auth/react';
 
 interface ProductCardProps {
-  product: Product;
+  product: IProduct;
   fallbackImage: string;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage }) => {
-  const { addToCart,toggleCart,  removeFromCart, cartItems } = useCart();
+  const { addToCart, toggleCart, removeFromCart, cartItems } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist, showLoginPrompt } = useWishlist();
+  const [isWishlistAnimating, setIsWishlistAnimating] = useState(false);
+  const { status } = useSession();
+  
   const increasedMRP = Math.ceil(product.price.mrp * 1.5);
   const discount = Math.round(((increasedMRP - product.price.offerPrice) / increasedMRP) * 100);
 
   const cartItem = cartItems.find((item) => item.id === product.id);
   const quantity = cartItem ? cartItem.quantity : 0;
+  const productInWishlist = isInWishlist(product.id);
 
   const handleBuyNow = (event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent navigation
@@ -24,27 +31,50 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
       id: product.id,
       name: product.name,
       price: product.price.offerPrice,
-      originalPrice:product.price.mrp,
+      originalPrice: product.price.mrp,
       quantity: 1,
     });
     toggleCart(); // Open sidebar
   };
 
-  
   const handleAddToCart = (event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent navigation
     addToCart({
       id: product.id,
       name: product.name,
       price: product.price.offerPrice,
-      originalPrice:product.price.mrp,
+      originalPrice: product.price.mrp,
       quantity: 1,
     });
     toggleCart(); // Open sidebar
   };
 
+  const handleWishlistToggle = async (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent navigation
+    event.preventDefault();
+    
+    if (status !== 'authenticated') {
+      showLoginPrompt();
+      return;
+    }
+    
+    setIsWishlistAnimating(true);
+    
+    try {
+      if (productInWishlist) {
+        await removeFromWishlist(product.id);
+      } else {
+        await addToWishlist(product.id);
+      }
+    } catch (error) {
+      console.error('Wishlist operation failed:', error);
+    } finally {
+      setTimeout(() => setIsWishlistAnimating(false), 300);
+    }
+  };
+
   return (
-    <div className="group bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-200 cursor-pointer ">
+    <div className="group bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-200 cursor-pointer">
       
       {/* Image Section - Click to navigate */}
       <Link href={`/productDescription/${product.id}`} passHref>
@@ -61,6 +91,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
               {discount}% OFF
             </div>
           )}
+          
+          {/* Wishlist button */}
+          <button
+            onClick={handleWishlistToggle}
+            className={`absolute top-2 right-2 bg-white p-2 rounded-full shadow-md transition-transform duration-300 ${
+              isWishlistAnimating ? 'scale-125' : 'scale-100'
+            } hover:bg-red-50`}
+            aria-label={productInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <Heart 
+              size={20} 
+              className={productInWishlist ? "text-red-500 fill-red-500" : "text-gray-500"} 
+            />
+          </button>
         </div>
       </Link>
 
@@ -77,7 +121,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-3">
-          {product.color.map((color) => (
+          {product.color.map((color: any) => (
             <span key={color} className="text-xs px-2 py-1 bg-cream text-newgreen rounded-full">
               {color}
             </span>
@@ -106,7 +150,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
         <div className="mt-5 flex flex-col gap-3">
           {quantity > 0 ? (
             <div className="flex items-center justify-between border border-greenComponent rounded-lg px-4 py-2">
-              <button onClick={() => removeFromCart(product.id)} className="text-newgreen hover:text-hoverColor">
+              <button onClick={(e) => {
+                e.stopPropagation();
+                removeFromCart(product.id);
+              }} className="text-newgreen hover:text-hoverColor">
                 <Minus size={16} />
               </button>
               <span className="text-lg font-semibold text-productNameColor">{quantity}</span>
@@ -124,7 +171,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
           )}
           <button
             onClick={handleBuyNow}
-           className="flex items-center justify-center gap-2 w-full bg-newgreensecond text-white py-2 rounded-lg 
+            className="flex items-center justify-center gap-2 w-full bg-newgreensecond text-white py-2 rounded-lg 
             hover:bg-newgreen transition-colors duration-200 font-medium">
             <CreditCard size={16} /> Buy Now
           </button>

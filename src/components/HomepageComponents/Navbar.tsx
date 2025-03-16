@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
+import { useWishlist } from "../../context/WishlistContext"; // Import the wishlist hook
 import {
   Menu, X, Search, ShoppingCart, Heart, User, Phone, BadgeIndianRupee
 } from "lucide-react";
@@ -14,7 +15,7 @@ import Link from "next/link";
 import DealerModal from "./BecomeDealer";
 import CartSidebar from "../CheckOutComponents/CartSidebar";
 import { signOut, useSession } from "next-auth/react";
-import SideMenu from "./SideMenuComponent"
+import SideMenu from "./SideMenuComponent";
 
 const isAdmin = (email: string | null | undefined) => {
   return email === "ecoplaster1@gmail.com";
@@ -30,6 +31,7 @@ const Navbar: React.FC = () => {
   
   const router = useRouter();
   const { cartCount, toggleCart } = useCart();
+  const { wishlistCount } = useWishlist(); // Use the wishlist context
 
   const handleDashboardRedirect = () => {
     if (session?.user?.role === "admin") {
@@ -125,12 +127,19 @@ const Navbar: React.FC = () => {
                   <Phone size={20} />
                 </button>
 
-                <button 
-                  className="text-white hover:text-newbeige hidden sm:block"
-                  aria-label="Wishlist"
+                {/* Wishlist Icon */}
+                <Link 
+                  href="/wishlist" 
+                  className="relative text-white hover:text-newbeige transition-colors"
+                  aria-label="View your wishlist"
                 >
                   <Heart size={20} />
-                </button>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
 
                 {/* User Section */}
                 <div className="relative flex items-center">

@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client';
 import { GET_ALL_USERS } from '@/constants/queries/allGETrequests';
 import { GET_ALL_DEALERS, GET_ALL_CONTACTS } from '@/constants/queries/allGETrequests';
 import { GET_ALL_BLOGS } from '@/constants/queries/blogQueries';
+import { GET_ORDER_STATS } from '@/constants/queries/orderQuerues'; // Add this import
 
 interface StatCardProps {
   title: string;
@@ -34,6 +35,7 @@ const StatsCards: React.FC<StatsCardsProps> = ({ setActiveTab }) => {
   const { data: dealersData, loading: dealersLoading } = useQuery(GET_ALL_DEALERS);
   const { data: contactsData, loading: contactsLoading } = useQuery(GET_ALL_CONTACTS);
   const { data: blogsData, loading: blogsLoading } = useQuery(GET_ALL_BLOGS);
+  const { data: orderStatsData, loading: orderStatsLoading } = useQuery(GET_ORDER_STATS); // Add this query
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -64,6 +66,13 @@ const StatsCards: React.FC<StatsCardsProps> = ({ setActiveTab }) => {
         loading={blogsLoading}
         onClick={() => setActiveTab('blogs')}
         bgColor="bg-beige"
+      />
+        <StatCard 
+        title="Total Orders"
+        count={orderStatsData?.getOrderStats?.totalOrders || 0}
+        loading={orderStatsLoading}
+        onClick={() => setActiveTab('orders')}
+        bgColor="bg-cream"
       />
     </div>
   );

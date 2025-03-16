@@ -47,6 +47,7 @@ const AdminDashboard: React.FC = () => {
 
   const tabs: TabType[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'orders', label: 'Orders', icon: '📦' },  // Add this line
     { id: 'products', label: 'Products', icon: '📦' },
     { id: 'promotions', label: 'Promotions', icon: '🏷️' },
     { id: 'announcements', label: 'Announcements', icon: '📢' },
@@ -180,6 +181,18 @@ const AdminDashboard: React.FC = () => {
             <ControlPanel />
           </>
         )}
+
+{activeTab === 'orders' && (
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="text-lg font-semibold text-productNameColor">Orders</h3>
+      <a 
+        href="/adminDashboard/orders" 
+        className="bg-greenComponent text-white px-4 py-2 rounded hover:bg-newgreen transition-colors"
+      >
+        Manage Orders
+      </a>
+    </div>
+  )}
 
         {activeTab === 'products' && <ProductManagement />}
         

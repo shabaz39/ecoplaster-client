@@ -8,6 +8,8 @@ interface CartItem {
   price: number;
   originalPrice: number;
   quantity: number;
+  image?: string; // Add this line to include the image property as optional
+
 }
 
 interface ShippingAddress {
@@ -94,8 +96,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (existingItem) {
         return prev.map((item) =>
           item.id === product.id 
-            ? { ...item, quantity: product.quantity } // Replace quantity instead of incrementing
-            : item
+        ? { ...item, quantity: item.quantity + product.quantity } // ADD quantities instead of replacing
+        : item
         );
       }
       return [...prev, product]; // Add new item with specified quantity

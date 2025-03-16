@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 const CartSidebar = () => {
-  const { cartItems, isCartOpen, toggleCart, removeFromCart, shippingAddress, updateShippingAddress } = useCart();
+  const { cartItems, isCartOpen, toggleCart, addToCart, removeFromCart, shippingAddress, updateShippingAddress } = useCart();
   const router = useRouter();
   const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   

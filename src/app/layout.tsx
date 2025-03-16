@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from "@/components/HomepageComponents/Navbar";
 import { CartProvider } from "@/context/CartContext";
 import AuthProvider from "../providers";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -39,7 +40,9 @@ export default function RootLayout({
           <CartProvider>
             <ApolloWrapper>
               <LoadingProvider>
+              <WishlistProvider>
                 {children}
+                </WishlistProvider>
               </LoadingProvider>
             </ApolloWrapper>
           </CartProvider>
