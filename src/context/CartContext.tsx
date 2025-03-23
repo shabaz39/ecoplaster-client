@@ -27,9 +27,13 @@ interface CartContextType {
   triggerCartAnimation: () => void;
   shippingAddress: ShippingAddress;
   updateShippingAddress: (address: ShippingAddress) => void;
+  clearCart: () => void; // Add this line
+
 }
 
 const CartContext = createContext<CartContextType | null>(null);
+
+
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -90,6 +94,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsCartOpen((prev) => !prev);
   };
 
+  // Then in the CartContext provider component, implement the function:
+const clearCart = () => {
+  setCartItems([]);
+  // If you're storing cart in localStorage, also clear it from there
+  localStorage.removeItem('cartItems');
+};
+
   const addToCart = (product: CartItem, showSidebar: boolean = true) => {
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
@@ -142,7 +153,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         removeFromCart, 
         triggerCartAnimation,
         shippingAddress,
-        updateShippingAddress
+        updateShippingAddress,
+        clearCart // Add this line
+
       }}
     >
       {children}

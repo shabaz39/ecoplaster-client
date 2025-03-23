@@ -1,3 +1,5 @@
+// src/components/ProductPageComponents/ProductCard.tsx
+
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -6,6 +8,7 @@ import { ShoppingCart, CreditCard, Plus, Minus, Heart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useSession } from 'next-auth/react';
+import { toast } from 'react-hot-toast';
 
 interface ProductCardProps {
   product: IProduct;
@@ -68,6 +71,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
       }
     } catch (error) {
       console.error('Wishlist operation failed:', error);
+      toast.error('Wishlist operation failed');
     } finally {
       setTimeout(() => setIsWishlistAnimating(false), 300);
     }
@@ -121,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-3">
-          {product.color.map((color: any) => (
+          {product.color && product.color.length > 0 && product.color.map((color: any) => (
             <span key={color} className="text-xs px-2 py-1 bg-cream text-newgreen rounded-full">
               {color}
             </span>
@@ -130,8 +134,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
 
         {/* Series & Finish */}
         <div className="text-sm text-black mb-3">
-          <p className="truncate">Series: {product.series.join(' • ')}</p>
-          <p className="truncate">Finish: {product.finish.join(' • ')}</p>
+          {product.series && (
+            <p className="truncate">Series: {product.series.join(' • ')}</p>
+          )}
+          {product.finish && (
+            <p className="truncate">Finish: {product.finish.join(' • ')}</p>
+          )}
         </div>
 
         {/* Price Section */}

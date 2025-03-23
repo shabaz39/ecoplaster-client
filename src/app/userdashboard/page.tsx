@@ -3,7 +3,7 @@
 import React from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import UserDashboard from '@/components/UserDashboardComponenets/UserDashboard';
+import UserDashboard from '@/components/UserDashboardComponenets/index';
 import Navbar from '@/components/HomepageComponents/Navbar';
 import Footer from '@/components/HomepageComponents/Footer';
 import ProtectedRoute from '@/components/ProtectedRoute';

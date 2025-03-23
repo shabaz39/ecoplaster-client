@@ -4,8 +4,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { useSession } from 'next-auth/react';
-import { GET_USER_WISHLIST, GET_ADMIN_WISHLIST, ADD_TO_WISHLIST, REMOVE_FROM_WISHLIST } from '../constants/queries/wishlistQueries';
 import { toast } from 'react-hot-toast';
+import { GET_USER_WISHLIST, ADD_TO_WISHLIST, REMOVE_FROM_WISHLIST } from '../constants/queries/wishlistQueries';
 
 interface WishlistContextType {
   wishlistCount: number;
@@ -38,13 +38,10 @@ export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) 
   const [isUserVerified, setIsUserVerified] = useState(false);
   const { data: session, status } = useSession();
   
-  // Use email as the identifier instead of id
-  const userEmail = session?.user?.email;
+  // Use email as identifier instead of id - crucial for this backend
+  const userEmail = session?.user?.email || '';
   
-  // Check if the user is the admin
-  const isAdmin = userEmail === 'ecoplaster1@gmail.com';
-  
-  // Use the appropriate query based on user type
+  // Fetch user wishlist data
   const { 
     data: userWishlistData, 
     loading: userWishlistLoading, 
@@ -52,63 +49,55 @@ export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) 
     refetch: refetchUserWishlist 
   } = useQuery(GET_USER_WISHLIST, {
     variables: { userEmail },
-    skip: !userEmail || status !== 'authenticated' || isAdmin,
+    skip: !userEmail || status !== 'authenticated',
     onError: (error) => {
       console.error('Error fetching user wishlist:', error);
-      setIsUserVerified(false);
+      setWishlistItems([]);
     },
     onCompleted: (data) => {
       if (data && data.getUserWishlist) {
+        setWishlistItems(data.getUserWishlist);
         setIsUserVerified(true);
+      } else {
+        setWishlistItems([]);
       }
     }
   });
-  
-  // Admin-specific query
-  const { 
-    data: adminWishlistData, 
-    loading: adminWishlistLoading, 
-    error: adminWishlistError, 
-    refetch: refetchAdminWishlist 
-  } = useQuery(GET_ADMIN_WISHLIST, {
-    variables: { adminEmail: userEmail },
-    skip: !userEmail || status !== 'authenticated' || !isAdmin,
-    onError: (error) => {
-      console.error('Error fetching admin wishlist:', error);
-    },
+
+  // Add to wishlist mutation
+  const [addToWishlistMutation] = useMutation(ADD_TO_WISHLIST, {
     onCompleted: (data) => {
-      if (data && data.getAdminWishlist) {
+      if (data?.addToWishlist?.wishlist) {
+        setWishlistItems(data.addToWishlist.wishlist);
         setIsUserVerified(true);
+      } else {
+        refetchUserWishlist();
       }
     }
   });
 
-  const [addToWishlistMutation] = useMutation(ADD_TO_WISHLIST);
-  const [removeFromWishlistMutation] = useMutation(REMOVE_FROM_WISHLIST);
-  
-  // Combined data and loading states
-  const wishlistData = isAdmin ? adminWishlistData?.getAdminWishlist : userWishlistData?.getUserWishlist;
-  const isWishlistLoading = isAdmin ? adminWishlistLoading : userWishlistLoading;
-  const wishlistError = isAdmin ? adminWishlistError : userWishlistError;
-  const refetchWishlist = isAdmin ? refetchAdminWishlist : refetchUserWishlist;
-
-  useEffect(() => {
-    if (wishlistData) {
-      setWishlistItems(wishlistData);
+  // Remove from wishlist mutation
+  const [removeFromWishlistMutation] = useMutation(REMOVE_FROM_WISHLIST, {
+    onCompleted: (data) => {
+      if (data?.removeFromWishlist?.wishlist) {
+        setWishlistItems(data.removeFromWishlist.wishlist);
+      } else {
+        refetchUserWishlist();
+      }
     }
-  }, [wishlistData]);
-
+  });
+  
   // Reset state when session changes
   useEffect(() => {
     if (status === 'unauthenticated') {
       setWishlistItems([]);
       setIsUserVerified(false);
-    } else if (status === 'authenticated' && isAdmin) {
-      // For admin, we always consider them verified
-      setIsUserVerified(true);
+    } else if (status === 'authenticated' && userEmail) {
+      refetchUserWishlist();
     }
-  }, [status, isAdmin]);
+  }, [status, userEmail, refetchUserWishlist]);
 
+  // Show login prompt for unauthenticated users
   const showLoginPrompt = () => {
     toast.custom((t) => (
       <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex flex-col`}>
@@ -152,83 +141,90 @@ export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) 
       return;
     }
 
-    // For regular users, we check verification. For admin, we bypass this check.
-    if (!isAdmin && !isUserVerified) {
-      showLoginPrompt();
+    // Validate productId
+    if (!productId) {
+      console.error("Product ID is missing");
       return;
     }
 
-      // Validate productId
-      if (!productId) {
-        console.error("Product ID is missing");
-        return;
-      }
-
-      console.log('Attempting to add to wishlist:', { userEmail, productId });
-
+    console.log('Attempting to add to wishlist:', { userEmail, productId });
 
     if (!isInWishlist(productId)) {
       try {
         // Optimistically update UI
-        setWishlistItems(prev => [...prev, { id: productId }]);
+        const tempItem = { id: productId, name: "Loading..." };
+        setWishlistItems(prev => [...prev, tempItem]);
         
-        // Make the mutation call to the backend
+        // IMPORTANT: Note the reversed parameter order to match server expectations
+        // The server expects (productId, userEmail) but our function receives (productId)
         await addToWishlistMutation({ 
-          variables: { userEmail, productId },
+          variables: { productId, userEmail },
+          onCompleted: () => {
+            toast.success('Added to wishlist');
+          },
           onError: (error) => {
             console.error('Failed to add to wishlist:', error);
-            console.error('Error details:', error.message, error.graphQLErrors, error.networkError);
-
+            
             // Revert optimistic update on error
             setWishlistItems(prev => prev.filter(item => item.id !== productId));
+            toast.error('Failed to add item to wishlist');
             
-            if (error.message.includes('User not found')) {
-              showLoginPrompt();
-            } else {
-              toast.error('Failed to add item to wishlist');
-            }
+            // Attempt to refetch current wishlist state
+            refetchUserWishlist().catch(e => 
+              console.error('Error refetching wishlist after failed add:', e)
+            );
           }
         });
-        console.log('Successfully added to wishlist');
-
-        toast.success('Added to wishlist');
-        // Then refetch to ensure data consistency
-        await refetchWishlist();
       } catch (error) {
         console.error('Failed to add to wishlist:', error);
         // Revert optimistic update on error
         setWishlistItems(prev => prev.filter(item => item.id !== productId));
+        toast.error('Error adding to wishlist');
+        
+        // Attempt to refetch current wishlist state
+        refetchUserWishlist().catch(e => 
+          console.error('Error refetching wishlist after exception:', e)
+        );
       }
     }
   };
 
   const removeFromWishlist = async (productId: string): Promise<void> => {
-    if (!userEmail || (!isAdmin && !isUserVerified)) return;
+    if (!userEmail || status !== 'authenticated') {
+      showLoginPrompt();
+      return;
+    }
 
     if (isInWishlist(productId)) {
       try {
         // Optimistically update UI
         setWishlistItems(prev => prev.filter(item => item.id !== productId));
         
-        // Make the mutation call to the backend
+        // IMPORTANT: Note the reversed parameter order to match server expectations
+        // The server expects (productId, userEmail) but our function receives (productId)
         await removeFromWishlistMutation({ 
-          variables: { userEmail, productId },
+          variables: { productId, userEmail },
+          onCompleted: () => {
+            toast.success('Removed from wishlist');
+          },
           onError: (error) => {
             console.error('Failed to remove from wishlist:', error);
-            // Will refetch to revert changes on error
-            refetchWishlist();
             
+            // Revert optimistic update and refetch correct data
+            refetchUserWishlist().catch(e => 
+              console.error('Error refetching wishlist after failed remove:', e)
+            );
             toast.error('Failed to remove item from wishlist');
           }
         });
-        
-        toast.success('Removed from wishlist');
-        // Then refetch to ensure data consistency
-        await refetchWishlist();
       } catch (error) {
         console.error('Failed to remove from wishlist:', error);
-        // Revert optimistic update on error
-        await refetchWishlist();
+        
+        // Revert optimistic update and refetch correct data
+        refetchUserWishlist().catch(e => 
+          console.error('Error refetching wishlist after exception:', e)
+        );
+        toast.error('Error removing from wishlist');
       }
     }
   };
@@ -238,7 +234,7 @@ export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) 
       value={{
         wishlistCount: wishlistItems.length,
         wishlistItems,
-        isWishlistLoading,
+        isWishlistLoading: userWishlistLoading,
         addToWishlist,
         removeFromWishlist,
         isInWishlist,

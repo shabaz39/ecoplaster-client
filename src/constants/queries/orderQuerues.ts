@@ -178,15 +178,17 @@ export const PLACE_ORDER = gql`
   mutation PlaceOrder($userId: ID!, $orderInput: OrderInput!) {
     placeOrder(userId: $userId, orderInput: $orderInput) {
       id
-      userId
+      totalAmount
+      status
+      paymentStatus
+      trackingNumber
+      createdAt
       products {
         productId
+        name
         quantity
         price
       }
-      totalAmount
-      status
-      createdAt
     }
   }
 `;

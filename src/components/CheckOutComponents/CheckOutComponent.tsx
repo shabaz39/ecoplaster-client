@@ -4,11 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import { CreditCard, Truck, CheckCircle, ArrowLeft, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
-import SignupModal from "../../components/HomepageComponents/Signup"; // Google Login Modal
-import { useLazyQuery } from "@apollo/client";
+import { useSession } from "next-auth/react";
+import SignupModal from "../../components/HomepageComponents/Signup";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import { VALIDATE_PROMO_CODE } from "@/constants/queries/promotionQueries";
+import { PLACE_ORDER } from "@/constants/queries/orderQuerues";
 import { toast } from "react-toastify";
 
 interface Promotion {
@@ -21,11 +21,12 @@ interface Promotion {
 }
 
 const CheckoutPage = () => {
-  const { cartItems } = useCart();
+  const { cartItems, clearCart } = useCart();
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { data: session, status } = useSession();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [shippingInfo, setShippingInfo] = useState({
     name: "",
     address: "",
@@ -63,8 +64,11 @@ const CheckoutPage = () => {
       console.error('Promo validation error:', error);
       toast.error(error.message || 'Invalid promotion code');
     },
-    fetchPolicy: 'network-only' // Add this to force a network request instead of using cache
+    fetchPolicy: 'network-only'
   });
+
+  // Create order mutation
+  const [createOrder, { loading: creatingOrder }] = useMutation(PLACE_ORDER);
 
   // Calculate discount amount
   const calculateDiscount = () => {
@@ -99,36 +103,133 @@ const CheckoutPage = () => {
     setAppliedPromo(null);
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
-
   const handleInputChange = (e: any) => {
     setShippingInfo({ ...shippingInfo, [e.target.name]: e.target.value });
   };
 
-  const handlePlaceOrder = () => {
-    if (!user) {
-      setIsLoginOpen(true); // Show login modal if not logged in
-    } else {
-      // Here you would typically submit the order with the promotion information
-      const orderData = {
-        shippingInfo,
-        paymentMethod,
-        cartItems,
-        subtotal,
-        discount,
-        shippingFee,
-        totalPrice,
-        promotionId: appliedPromo?.id
+  const handlePlaceOrder = async () => {
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+    
+    if (status !== "authenticated" || !session?.user) {
+      console.log("No authenticated session, showing login modal");
+      setIsLoginOpen(true);
+      return;
+    }
+    
+    console.log("User is logged in, proceeding with order");
+    
+    // Validate shipping info
+    const requiredFields = ["name", "address", "city", "zip", "phone"];
+    const missingFields = requiredFields.filter(field => {
+      return !shippingInfo[field as keyof typeof shippingInfo];
+    });
+    
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in all required shipping information: ${missingFields.join(", ")}`);
+      return;
+    }
+  
+    // Validate cart is not empty
+    if (cartItems.length === 0) {
+      toast.error("Your cart is empty. Please add items before proceeding.");
+      return;
+    }
+  
+    try {
+      setIsSubmitting(true);
+      
+      // Create a simpler order input object to minimize potential issues
+      const orderInput = {
+        products: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        totalAmount: totalPrice,
+        shippingAddress: {
+          street: shippingInfo.address,
+          city: shippingInfo.city,
+          state: "", 
+          zip: shippingInfo.zip,
+          country: "India"
+        },
+        // Don't include billing address for now to simplify
+        paymentMethod: paymentMethod === "card" ? "Card" : "COD",
+        paymentStatus: "Pending",
+        // Don't include transactionId if null
       };
       
-      console.log('Order data:', orderData);
+      console.log("Submitting simplified order data:", { 
+        userId: session.user.id, 
+        orderInput 
+      });
       
-      router.push("/payment"); // Redirect to payment page if logged in
+      // Execute the mutation with error policies
+      const response = await createOrder({ 
+        variables: { 
+          userId: session.user.id,
+          orderInput: orderInput
+        },
+        errorPolicy: 'all' // This will include both data and errors in the response
+      });
+      
+      console.log("Complete order mutation response:", response);
+      
+      if (response.errors) {
+        console.error("GraphQL errors:", response.errors);
+        const errorMessages = response.errors.map(err => {
+          console.error("Error details:", err);
+          return err.message;
+        }).join(", ");
+        throw new Error(`Order failed: ${errorMessages}`);
+      }
+      
+      if (!response.data || !response.data.placeOrder) {
+        console.error("No valid response data received");
+        throw new Error("Failed to create order: No valid response data");
+      }
+      
+      const orderId = response.data.placeOrder.id;
+      
+      // Process successful order
+      if (paymentMethod === "card") {
+        router.push(`/payment?orderId=${orderId}`);
+      } else {
+        toast.success("Order placed successfully!");
+        clearCart();
+        router.push(`/order/confirmation?orderId=${orderId}`);
+      }
+      
+    } catch (error: any) {
+      console.error("Error creating order:", error);
+      
+      // Try to extract more detailed error information
+      if (error.networkError) {
+        console.error("Network error details:", error.networkError);
+        
+        // For 400 errors, try to get the response body
+        if (error.networkError.statusCode === 400 && error.networkError.bodyText) {
+          try {
+            const errorBody = JSON.parse(error.networkError.bodyText);
+            console.error("Error response body:", errorBody);
+            toast.error(`Server error: ${errorBody.message || "Unknown error"}`);
+          } catch (e) {
+            console.error("Error parsing error body:", e);
+            toast.error(`Server returned a 400 error: ${error.networkError.bodyText.substring(0, 100)}`);
+          }
+        } else {
+          toast.error(`Network error (${error.networkError.statusCode || "unknown status"})`);
+        }
+      } else if (error.graphQLErrors) {
+        console.error("GraphQL errors:", error.graphQLErrors);
+        const errorMessages = error.graphQLErrors.map((err: any) => err.message).join(", ");
+        toast.error(`Order failed: ${errorMessages}`);
+      } else {
+        toast.error(`Failed to place order: ${error.message}`);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -158,45 +259,51 @@ const CheckoutPage = () => {
               <input
                 type="text"
                 name="name"
-                placeholder="Full Name"
+                placeholder="Full Name*"
                 value={shippingInfo.name}
                 onChange={handleInputChange}
                 className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                required
               />
               <input
                 type="text"
                 name="phone"
-                placeholder="Phone Number"
+                placeholder="Phone Number*"
                 value={shippingInfo.phone}
                 onChange={handleInputChange}
                 className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                required
               />
               <input
                 type="text"
                 name="address"
-                placeholder="Address"
+                placeholder="Address*"
                 value={shippingInfo.address}
                 onChange={handleInputChange}
                 className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                required
               />
               <div className="flex flex-col sm:flex-row gap-4">
                 <input
                   type="text"
                   name="city"
-                  placeholder="City"
+                  placeholder="City*"
                   value={shippingInfo.city}
                   onChange={handleInputChange}
                   className="w-full sm:w-1/2 p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                  required
                 />
                 <input
                   type="text"
                   name="zip"
-                  placeholder="PIN Code"
+                  placeholder="PIN Code*"
                   value={shippingInfo.zip}
                   onChange={handleInputChange}
                   className="w-full sm:w-1/2 p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                  required
                 />
               </div>
+              <p className="text-xs text-gray-500">* Required fields</p>
             </div>
           </div>
 
@@ -213,9 +320,12 @@ const CheckoutPage = () => {
                 onClick={() => setPaymentMethod("card")}
               >
                 <CreditCard className={paymentMethod === "card" ? "text-newgreensecond" : "text-gray-400"} />
-                <span className={paymentMethod === "card" ? "text-newgreensecond font-medium" : "text-gray-600"}>
-                  Card Payment
-                </span>
+                <div className="text-left">
+                  <span className={paymentMethod === "card" ? "text-newgreensecond font-medium" : "text-gray-600"}>
+                    Card Payment
+                  </span>
+                  <p className="text-xs text-gray-500">Credit/Debit Card, UPI, NetBanking</p>
+                </div>
               </button>
               <button
                 className={`p-4 rounded-lg border-2 flex items-center justify-center gap-3 ${
@@ -226,9 +336,12 @@ const CheckoutPage = () => {
                 onClick={() => setPaymentMethod("cod")}
               >
                 <Truck className={paymentMethod === "cod" ? "text-newgreensecond" : "text-gray-400"} />
-                <span className={paymentMethod === "cod" ? "text-newgreensecond font-medium" : "text-gray-600"}>
-                  Cash on Delivery
-                </span>
+                <div className="text-left">
+                  <span className={paymentMethod === "cod" ? "text-newgreensecond font-medium" : "text-gray-600"}>
+                    Cash on Delivery
+                  </span>
+                  <p className="text-xs text-gray-500">Pay when your order arrives</p>
+                </div>
               </button>
             </div>
           </div>
@@ -240,14 +353,20 @@ const CheckoutPage = () => {
             <h2 className="text-lg font-semibold text-black mb-4">Order Summary</h2>
 
             {/* Items */}
-            <div className="space-y-4 mb-4">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex justify-between text-gray-600">
-                  <span>{item.name} × {item.quantity}</span>
-                  <span>₹{(item.price * item.quantity).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
+            {cartItems.length > 0 ? (
+              <div className="space-y-4 mb-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex justify-between text-gray-600">
+                    <span>{item.name} × {item.quantity}</span>
+                    <span>₹{(item.price * item.quantity).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 mb-4">
+                <p className="text-gray-500">Your cart is empty</p>
+              </div>
+            )}
 
             {/* Promotion Code Section */}
             <div className="border-t pt-4 pb-4">
@@ -320,11 +439,30 @@ const CheckoutPage = () => {
 
             {/* Place Order Button */}
             <button 
-              onClick={handlePlaceOrder} 
-              className="w-full py-4 bg-newgreensecond text-white rounded-md font-medium mt-6 hover:bg-newgreen transition-colors flex items-center justify-center gap-2"
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting || cartItems.length === 0 || status === "loading"}
+              className={`w-full py-4 text-white rounded-md font-medium mt-6 flex items-center justify-center gap-2
+                ${isSubmitting || cartItems.length === 0 || status === "loading"
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-newgreensecond hover:bg-newgreen transition-colors'
+                }`}
             >
-              <CheckCircle size={20} />
-              Place Order
+              {isSubmitting ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-1"></span>
+                  Processing...
+                </>
+              ) : status === "loading" ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-1"></span>
+                  Checking session...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={20} />
+                  {status === "authenticated" ? 'Place Order' : 'Sign in to Order'}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -334,7 +472,7 @@ const CheckoutPage = () => {
       <SignupModal 
         isOpen={isLoginOpen} 
         onClose={() => setIsLoginOpen(false)}
-        callbackUrl={currentPath}  // Pass the current path
+        callbackUrl={currentPath}
       />
     </div>
   );
