@@ -29,7 +29,7 @@ const PaymentSuccessRoute = () => {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["User", "Admin"]}>
+    <ProtectedRoute allowedRoles={["user", "admin"]}>
     <PaymentSuccessPage orderId={orderId} />
   </ProtectedRoute>
   );

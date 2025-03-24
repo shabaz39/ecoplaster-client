@@ -117,8 +117,6 @@ const CheckoutPage = () => {
       return;
     }
     
-    console.log("User is logged in, proceeding with order");
-    
     // Validate shipping info
     const requiredFields = ["name", "address", "city", "zip", "phone"];
     const missingFields = requiredFields.filter(field => {
@@ -139,7 +137,7 @@ const CheckoutPage = () => {
     try {
       setIsSubmitting(true);
       
-      // Create a simpler order input object to minimize potential issues
+      // Create order input that exactly matches what your server expects
       const orderInput = {
         products: cartItems.map(item => ({
           productId: item.id,
@@ -148,91 +146,111 @@ const CheckoutPage = () => {
         })),
         totalAmount: totalPrice,
         shippingAddress: {
+          type: "Shipping",
           street: shippingInfo.address,
           city: shippingInfo.city,
           state: "", 
           zip: shippingInfo.zip,
           country: "India"
         },
-        // Don't include billing address for now to simplify
+        billingAddress: {
+          type: "Billing",
+          street: shippingInfo.address,
+          city: shippingInfo.city,
+          state: "", 
+          zip: shippingInfo.zip,
+          country: "India"
+        },
         paymentMethod: paymentMethod === "card" ? "Card" : "COD",
-        paymentStatus: "Pending",
-        // Don't include transactionId if null
+        paymentStatus: "Pending"
       };
       
-      console.log("Submitting simplified order data:", { 
+      console.log("Submitting order with data:", { 
         userId: session.user.id, 
         orderInput 
       });
       
-      // Execute the mutation with error policies
-      const response = await createOrder({ 
-        variables: { 
-          userId: session.user.id,
-          orderInput: orderInput
-        },
-        errorPolicy: 'all' // This will include both data and errors in the response
-      });
-      
-      console.log("Complete order mutation response:", response);
-      
-      if (response.errors) {
-        console.error("GraphQL errors:", response.errors);
-        const errorMessages = response.errors.map(err => {
-          console.error("Error details:", err);
-          return err.message;
-        }).join(", ");
-        throw new Error(`Order failed: ${errorMessages}`);
-      }
-      
-      if (!response.data || !response.data.placeOrder) {
-        console.error("No valid response data received");
-        throw new Error("Failed to create order: No valid response data");
-      }
-      
-      const orderId = response.data.placeOrder.id;
-      
-      // Process successful order
-      if (paymentMethod === "card") {
-        router.push(`/payment?orderId=${orderId}`);
-      } else {
+      // Use fetch without credentials to bypass CORS issues
+      try {
+        const response = await fetch('http://localhost:4000/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              mutation PlaceOrder($userId: ID!, $orderInput: OrderInput!) {
+                placeOrder(userId: $userId, orderInput: $orderInput) {
+                  id
+                  status
+                  totalAmount
+                }
+              }
+            `,
+            variables: {
+              userId: session.user.id,
+              orderInput: orderInput
+            }
+          })
+        });
+        
+        const responseText = await response.text();
+        console.log("Raw GraphQL response:", responseText);
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}: ${responseText}`);
+        }
+        
+        const responseJson = JSON.parse(responseText);
+        console.log("Parsed response:", responseJson);
+        
+        if (responseJson.errors) {
+          throw new Error(responseJson.errors[0].message);
+        }
+        
+        if (!responseJson.data || !responseJson.data.placeOrder) {
+          throw new Error("No order data returned");
+        }
+        
+        const orderId = responseJson.data.placeOrder.id;
+        
+        // Show success message first
         toast.success("Order placed successfully!");
+        
+        // Clear the cart
         clearCart();
-        router.push(`/order/confirmation?orderId=${orderId}`);
+        
+        // Save important data to local storage for recovery if needed
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastOrderId', orderId);
+          localStorage.setItem('userRole', session.user.role || "User");
+        }
+        
+        // Use a slight delay then redirect
+        setTimeout(() => {
+          if (paymentMethod === "card") {
+            console.log("Navigating to payment page", `/payment?orderId=${orderId}`);
+            // Ensure we're passing the session information properly
+            router.push(`/payment?orderId=${orderId}`);
+          } else {
+            console.log("Navigating to confirmation page", `/order/confirmation?orderId=${orderId}`);
+            router.push(`/order/confirmation?orderId=${orderId}`);
+          }
+        }, 500);
+        
+      } catch (fetchError: any) {
+        console.error("Fetch error:", fetchError);
+        throw new Error(`Request failed: ${fetchError.message}`);
       }
-      
     } catch (error: any) {
       console.error("Error creating order:", error);
-      
-      // Try to extract more detailed error information
-      if (error.networkError) {
-        console.error("Network error details:", error.networkError);
-        
-        // For 400 errors, try to get the response body
-        if (error.networkError.statusCode === 400 && error.networkError.bodyText) {
-          try {
-            const errorBody = JSON.parse(error.networkError.bodyText);
-            console.error("Error response body:", errorBody);
-            toast.error(`Server error: ${errorBody.message || "Unknown error"}`);
-          } catch (e) {
-            console.error("Error parsing error body:", e);
-            toast.error(`Server returned a 400 error: ${error.networkError.bodyText.substring(0, 100)}`);
-          }
-        } else {
-          toast.error(`Network error (${error.networkError.statusCode || "unknown status"})`);
-        }
-      } else if (error.graphQLErrors) {
-        console.error("GraphQL errors:", error.graphQLErrors);
-        const errorMessages = error.graphQLErrors.map((err: any) => err.message).join(", ");
-        toast.error(`Order failed: ${errorMessages}`);
-      } else {
-        toast.error(`Failed to place order: ${error.message}`);
-      }
+      toast.error(`Failed to place order: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
+  
   return (
     <div className="min-h-screen bg-gray-50 text-black">
       {/* Header */}

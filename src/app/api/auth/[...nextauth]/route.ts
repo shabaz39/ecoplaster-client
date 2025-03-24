@@ -43,6 +43,8 @@ const handler = NextAuth({
           
           if (data?.googleLogin?.user?.id) {
             user.id = data.googleLogin.user.id;
+            user.role = data.googleLogin.user.role; // ✅ Add this line
+
           }
           
           return true;
@@ -57,6 +59,8 @@ const handler = NextAuth({
       if (account && user) {
         if (user.id) {
           token.id = user.id;
+          token.role = user.role ?? "user"; // ✅ Use role from user object
+
         }
         token.role = user.email === "ecoplaster1@gmail.com" ? "admin" : "user";
       }
@@ -65,6 +69,8 @@ const handler = NextAuth({
     async session({ session, token }) {
       if (token.id) {
         session.user.id = token.id;
+        session.user.role = token.role ?? "user";
+
       }
       session.user.role = token.role ?? "user";
       return session;
