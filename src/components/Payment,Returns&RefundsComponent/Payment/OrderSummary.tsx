@@ -21,7 +21,7 @@ interface OrderAddress {
 
 interface OrderProps {
   order: {
-    _id: string;
+    id: string;
     products: OrderProduct[];
     shippingAddress: OrderAddress;
     totalAmount: number;
@@ -30,6 +30,8 @@ interface OrderProps {
 }
 
 export const OrderSummary: React.FC<OrderProps> = ({ order }) => {
+  console.log("Rendering OrderSummary with:", order);
+  
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 md:sticky md:top-4">
       <h2 className="text-lg font-semibold text-black mb-4">Order Summary</h2>
@@ -37,7 +39,7 @@ export const OrderSummary: React.FC<OrderProps> = ({ order }) => {
       {/* Order ID */}
       <div className="bg-gray-50 rounded-md p-3 mb-4">
         <p className="text-sm text-gray-500">Order ID</p>
-        <p className="font-medium text-black">{order._id}</p>
+        <p className="font-medium text-black">{order.id}</p>
       </div>
 
       {/* Products */}
@@ -75,7 +77,7 @@ export const OrderSummary: React.FC<OrderProps> = ({ order }) => {
         </h3>
         <div className="bg-gray-50 rounded-md p-3">
           <p className="text-sm text-gray-600">
-            {[
+            {order.shippingAddress && [
               order.shippingAddress.street,
               order.shippingAddress.city,
               order.shippingAddress.state,

@@ -15,6 +15,7 @@ import { PaymentStatusBanner } from "./PaymentStatusBanner";
 import { PaymentMethods } from "./PaymentMethods";
 import { ArrowLeft, CreditCard, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
 
 declare global {
   interface Window {
@@ -28,31 +29,52 @@ interface PaymentPageProps {
 
 const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
   const router = useRouter();
-  const { cartItems } = useCart();
+  const { clearCart } = useCart();
+  const { data: session } = useSession();
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
 
+  console.log("PaymentPage initialized with orderId:", orderId);
+  console.log("Session data:", session);
+
   // Get order details
   const [getOrderDetails, { data: orderData, loading: orderLoading, error: orderError }] = useLazyQuery(
     GET_ORDER_BY_ID, 
     { 
-      variables: { id: orderId },
-      fetchPolicy: "network-only"
+      variables: { getOrderId: orderId },  // <-- Changed from 'id' to 'getOrderId'
+      fetchPolicy: "network-only",
+      onCompleted: (data) => {
+        console.log("Order data successfully retrieved:", data);
+      },
+      onError: (error) => {
+        console.error("Error fetching order:", error);
+        console.error("Error details:", error.graphQLErrors, error.networkError);
+      }
     }
   );
 
   // Create payment order mutation
-  const [createPaymentOrder, { loading: creatingOrder }] = useMutation(CREATE_PAYMENT_ORDER);
+  const [createPaymentOrder, { loading: creatingOrder }] = useMutation(CREATE_PAYMENT_ORDER, {
+    onCompleted: (data) => {
+      console.log("Payment order created successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error creating payment order:", error);
+      console.error("Error details:", error.graphQLErrors, error.networkError);
+    }
+  });
 
   // Verify payment mutation
-  const [verifyPayment, { loading: verifyingPayment }] = useMutation(VERIFY_PAYMENT);
+  const [verifyPayment] = useMutation(VERIFY_PAYMENT);
 
   // Handle payment failure mutation
   const [handlePaymentFailure] = useMutation(HANDLE_PAYMENT_FAILURE);
 
   useEffect(() => {
+    console.log("Loading order details for ID:", orderId);
+    
     // Load Razorpay script
     const loadRazorpayScript = () => {
       return new Promise<void>((resolve) => {
@@ -60,8 +82,12 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.async = true;
         script.onload = () => {
+          console.log("Razorpay script loaded successfully");
           resolve();
           setIsRazorpayLoaded(true);
+        };
+        script.onerror = () => {
+          console.error("Failed to load Razorpay script");
         };
         document.body.appendChild(script);
       });
@@ -71,30 +97,38 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     getOrderDetails();
 
     // Load Razorpay script if not already loaded
-    if (typeof window !== 'undefined' && !window.Razorpay) {
-      loadRazorpayScript();
-    } else if (typeof window !== 'undefined') {
-      setIsRazorpayLoaded(true);
+    if (typeof window !== 'undefined') {
+      if (!window.Razorpay) {
+        console.log("Loading Razorpay script...");
+        loadRazorpayScript();
+      } else {
+        console.log("Razorpay already loaded");
+        setIsRazorpayLoaded(true);
+      }
     }
   }, [getOrderDetails, orderId]);
 
   // Handle order creation and payment initiation
   const handlePayment = async () => {
-    if (!orderData?.getOrderById) {
+    if (!orderData?.getOrder) {
+      console.error("Order data not available:", orderData);
       toast.error("Order details not available");
       return;
     }
 
     try {
       setPaymentStatus('processing');
-      const order = orderData.getOrderById;
+      const order = orderData.getOrder;
+      
+      console.log("Creating payment order for:", order.id);
+      console.log("Order details:", order);
       
       // Create payment order
       const { data: paymentOrderData } = await createPaymentOrder({
         variables: {
           input: {
-            orderId: order._id,
-            userId: order.userId,
+            orderId: order.id,
+            userId: session?.user?.id || order.userId,
             amount: order.totalAmount,
             currency: "INR",
             notes: {
@@ -112,29 +146,35 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
         throw new Error("Failed to create payment order");
       }
 
+      console.log("Payment order created:", paymentOrderData.createPaymentOrder);
+      console.log("Razorpay key:", paymentOrderData.createPaymentOrder.key);
+
       // Init Razorpay payment flow
       const options = {
         key: paymentOrderData.createPaymentOrder.key,
         amount: paymentOrderData.createPaymentOrder.amount * 100, // Amount in paise
         currency: paymentOrderData.createPaymentOrder.currency,
         name: "Ecoplaster",
-        description: `Payment for Order #${order._id}`,
+        description: `Payment for Order #${order.id}`,
         order_id: paymentOrderData.createPaymentOrder.razorpayOrderId,
         prefill: {
           name: order.shippingAddress?.name || "",
-          email: "", // Add user email if available
+          email: session?.user?.email || "",
           contact: order.shippingAddress?.phoneNumber || "",
         },
         theme: {
-          color: "#10b981", // Using the newgreensecond color from your app
+          color: "#10b981", // Using the newgreensecond color
         },
         modal: {
           ondismiss: function() {
+            console.log("Razorpay modal dismissed");
             setPaymentStatus('idle');
           },
         },
         handler: async function(response: any) {
           try {
+            console.log("Payment success response:", response);
+            
             // Verify payment with backend
             const { data: verificationData } = await verifyPayment({
               variables: {
@@ -149,9 +189,11 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
             if (verificationData?.verifyPayment) {
               setPaymentStatus('success');
               toast.success("Payment successful!");
+              // Clear cart after successful payment
+              clearCart();
               // Redirect to success page
               setTimeout(() => {
-                router.push(`/payment/success?orderId=${order._id}`);
+                router.push(`/payment/success?orderId=${order.id}`);
               }, 2000);
             } else {
               throw new Error("Payment verification failed");
@@ -164,10 +206,21 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
         },
       };
 
+      console.log("Initializing Razorpay with options:", options);
+
+      if (!window.Razorpay) {
+        console.error("Razorpay is not loaded!");
+        toast.error("Payment gateway is not available. Please try again later.");
+        setPaymentStatus('failed');
+        return;
+      }
+
       const razorpay = new window.Razorpay(options);
       
       razorpay.on('payment.failed', async function(response: any) {
         try {
+          console.log("Payment failed response:", response.error);
+          
           // Handle payment failure in backend
           await handlePaymentFailure({
             variables: {
@@ -188,6 +241,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
         }
       });
 
+      console.log("Opening Razorpay payment form...");
       razorpay.open();
     } catch (error) {
       console.error("Payment initiation error:", error);
@@ -204,12 +258,22 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     );
   }
 
-  if (orderError || !orderData?.getOrderById) {
+  if (orderError || !orderData?.getOrder) {
+    console.error("Order not found or error:", orderError);
+    console.error("Order data:", orderData);
+    
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <AlertCircle size={48} className="text-red-500 mb-4" />
         <h1 className="text-xl font-semibold text-gray-800 mb-2">Order Not Found</h1>
-        <p className="text-gray-600 mb-6">We couldn't find the order details. Please try again.</p>
+        <p className="text-gray-600 mb-6">
+          We couldn't find the order details.
+          {orderError && (
+            <span className="block mt-2 text-red-500 text-sm">
+              Error: {orderError.message}
+            </span>
+          )}
+        </p>
         <button
           onClick={() => router.back()}
           className="flex items-center text-white bg-newgreensecond px-6 py-2 rounded-md hover:bg-newgreen transition-colors"
@@ -221,7 +285,8 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     );
   }
 
-  const order = orderData.getOrderById;
+  const order = orderData.getOrder;
+  console.log("Order details ready for rendering:", order);
 
   return (
     <div className="min-h-screen bg-gray-50 text-black">

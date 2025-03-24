@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Home, Package, ArrowRight } from "lucide-react";
 import { useLazyQuery } from "@apollo/client";
-import { GET_PAYMENT_BY_ORDER_ID } from "../../../constants/queries/paymentQueries";
+import { GET_PAYMENT_BY_ORDER_ID, GET_ORDER_BY_ID } from "../../../constants/queries/paymentQueries";
 
 interface PaymentSuccessPageProps {
   orderId: string;
@@ -12,11 +12,12 @@ interface PaymentSuccessPageProps {
 
 const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
   const router = useRouter();
+  const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [countdown, setCountdown] = useState(5);
 
   // Fetch payment details
-  const [getPaymentDetails, { data, loading, error }] = useLazyQuery(
+  const [getPaymentDetails, { data: paymentData, loading: paymentLoading, error: paymentError }] = useLazyQuery(
     GET_PAYMENT_BY_ORDER_ID,
     {
       variables: { orderId },
@@ -24,11 +25,21 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
     }
   );
 
+  // Fetch order details
+  const [getOrderDetails, { data: orderData, loading: orderLoading, error: orderError }] = useLazyQuery(
+    GET_ORDER_BY_ID,
+    {
+      variables: { id: orderId },
+      fetchPolicy: "network-only",
+    }
+  );
+
   useEffect(() => {
     if (orderId) {
       getPaymentDetails();
+      getOrderDetails();
     }
-  }, [orderId, getPaymentDetails]);
+  }, [orderId, getPaymentDetails, getOrderDetails]);
 
   useEffect(() => {
     // Auto redirect to orders page after countdown
@@ -41,10 +52,14 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
   }, [countdown, router]);
 
   useEffect(() => {
-    if (data?.getPaymentByOrderId) {
-      setOrderDetails(data.getPaymentByOrderId);
+    if (paymentData?.getPaymentByOrderId) {
+      setPaymentDetails(paymentData.getPaymentByOrderId);
     }
-  }, [data]);
+    
+    if (orderData?.getOrder) {
+      setOrderDetails(orderData.getOrder);
+    }
+  }, [paymentData, orderData]);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -56,10 +71,29 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
     });
   };
 
-  if (loading) {
+  if (paymentLoading || orderLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-newgreensecond"></div>
+      </div>
+    );
+  }
+
+  if (paymentError || orderError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold text-red-600 mb-4">Error Loading Details</h2>
+          <p className="text-gray-600 mb-4">
+            {paymentError?.message || orderError?.message || "Failed to load payment or order details."}
+          </p>
+          <button
+            onClick={() => router.push("/userdashboard")}
+            className="w-full bg-newgreensecond text-white py-2 rounded-md hover:bg-newgreen"
+          >
+            Go to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
@@ -77,7 +111,7 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
           </p>
         </div>
 
-        {orderDetails && (
+        {(paymentDetails || orderDetails) && (
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-lg p-4">
               <h2 className="text-sm font-medium text-gray-500 mb-2">Order Details</h2>
@@ -89,26 +123,26 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
                 <div>
                   <p className="text-sm text-gray-500">Date</p>
                   <p className="font-medium text-gray-800">
-                    {formatDate(orderDetails.createdAt)}
+                    {paymentDetails?.createdAt ? formatDate(paymentDetails.createdAt) : "-"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Amount</p>
                   <p className="font-medium text-gray-800">
-                    ₹{orderDetails.amount.toLocaleString()}
+                    ₹{orderDetails?.totalAmount?.toLocaleString() || paymentDetails?.amount?.toLocaleString() || "-"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Payment Method</p>
                   <p className="font-medium text-gray-800 capitalize">
-                    {orderDetails.paymentMethod || "Online"}
+                    {paymentDetails?.paymentMethod || "Online"}
                   </p>
                 </div>
-                {orderDetails.razorpayPaymentId && (
+                {paymentDetails?.razorpayPaymentId && (
                   <div className="col-span-2">
                     <p className="text-sm text-gray-500">Transaction ID</p>
-                    <p className="font-medium text-gray-800">
-                      {orderDetails.razorpayPaymentId}
+                    <p className="font-medium text-gray-800 break-words">
+                      {paymentDetails.razorpayPaymentId}
                     </p>
                   </div>
                 )}
