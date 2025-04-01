@@ -115,8 +115,8 @@ export const HANDLE_PAYMENT_FAILURE = gql`
 // Get order by ID (this was missing in the error logs)
 
 export const GET_ORDER_BY_ID = gql`
-query GetOrder($getOrderId: ID!) {
-  getOrder(id: $getOrderId) {
+query GetOrder($id: ID!) {
+  getOrder(id: $id) {
     id
     userId
     user {

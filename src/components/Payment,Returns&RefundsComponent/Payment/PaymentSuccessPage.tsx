@@ -5,16 +5,58 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, Home, Package, ArrowRight } from "lucide-react";
 import { useLazyQuery } from "@apollo/client";
 import { GET_PAYMENT_BY_ORDER_ID, GET_ORDER_BY_ID } from "../../../constants/queries/paymentQueries";
+import { useSession } from 'next-auth/react';
 
 interface PaymentSuccessPageProps {
   orderId: string;
 }
 
 const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [countdown, setCountdown] = useState(5);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-newgreensecond"></div>
+      </div>
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold text-red-600 mb-4">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">
+            Please log in to view your payment details.
+          </p>
+          <button
+            onClick={() => router.push("/auth/signin?callbackUrl=" + encodeURIComponent(`/payment/success?orderId=${orderId}`))}
+            className="w-full bg-newgreensecond text-white py-2 rounded-md hover:bg-newgreen"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusDisplay = (status:string) => {
+    // Normalize the status to handle both uppercase and lowercase
+    const normalizedStatus = status?.toLowerCase();
+    
+    if (normalizedStatus === 'captured' || normalizedStatus === 'created' || 
+        normalizedStatus === 'authorized' || normalizedStatus === 'refunded' || 
+        normalizedStatus === 'failed') {
+      return normalizedStatus;
+    }
+    
+    return 'Unknown';
+  };
 
   // Fetch payment details
   const [getPaymentDetails, { data: paymentData, loading: paymentLoading, error: paymentError }] = useLazyQuery(
@@ -135,7 +177,7 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
                 <div>
                   <p className="text-sm text-gray-500">Payment Method</p>
                   <p className="font-medium text-gray-800 capitalize">
-                    {paymentDetails?.paymentMethod || "Online"}
+                  {paymentDetails?.status ? getStatusDisplay(paymentDetails.status) : 'Unknown'}
                   </p>
                 </div>
                 {paymentDetails?.razorpayPaymentId && (

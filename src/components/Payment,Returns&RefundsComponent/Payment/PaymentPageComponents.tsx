@@ -43,14 +43,23 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
   const [getOrderDetails, { data: orderData, loading: orderLoading, error: orderError }] = useLazyQuery(
     GET_ORDER_BY_ID, 
     { 
-      variables: { getOrderId: orderId },  // <-- Changed from 'id' to 'getOrderId'
+      variables: { id: orderId },  // <-- Use id instead of getOrderId
       fetchPolicy: "network-only",
       onCompleted: (data) => {
         console.log("Order data successfully retrieved:", data);
+         // Log the entire response to see the structure
+      console.log("Full GraphQL response:", data);
       },
       onError: (error) => {
         console.error("Error fetching order:", error);
         console.error("Error details:", error.graphQLErrors, error.networkError);
+        if (error.networkError) {
+          console.error("Network error details:", error.networkError);
+        }
+        // Check server response if available
+        if (error.networkError && 'result' in error.networkError) {
+          console.error("Server error response:", error.networkError.result);
+        }
       }
     }
   );
@@ -71,6 +80,8 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
 
   // Handle payment failure mutation
   const [handlePaymentFailure] = useMutation(HANDLE_PAYMENT_FAILURE);
+
+  
 
   useEffect(() => {
     console.log("Loading order details for ID:", orderId);
@@ -94,7 +105,11 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     };
 
     // Get order details when component mounts
-    getOrderDetails();
+    if (orderId) {
+      getOrderDetails({ variables: { id: orderId } });
+    } else {
+      console.error("No orderId provided to payment page");
+    }
 
     // Load Razorpay script if not already loaded
     if (typeof window !== 'undefined') {
@@ -121,7 +136,8 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
       const order = orderData.getOrder;
       
       console.log("Creating payment order for:", order.id);
-      console.log("Order details:", order);
+    console.log("Order details:", JSON.stringify(order, null, 2));
+    console.log("Session user ID:", session?.user?.id);
       
       // Create payment order
       const { data: paymentOrderData } = await createPaymentOrder({
@@ -176,7 +192,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
             console.log("Payment success response:", response);
             
             // Verify payment with backend
-            const { data: verificationData } = await verifyPayment({
+            const result = await verifyPayment({
               variables: {
                 input: {
                   razorpayOrderId: response.razorpay_order_id,
@@ -185,8 +201,10 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
                 }
               }
             });
-
-            if (verificationData?.verifyPayment) {
+            
+            console.log("Verification result:", JSON.stringify(result, null, 2));
+            
+            if (result.data && result.data.verifyPayment) {
               setPaymentStatus('success');
               toast.success("Payment successful!");
               // Clear cart after successful payment
@@ -196,6 +214,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
                 router.push(`/payment/success?orderId=${order.id}`);
               }, 2000);
             } else {
+              console.error("Verification data is missing:", result);
               throw new Error("Payment verification failed");
             }
           } catch (error) {
@@ -259,8 +278,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
   }
 
   if (orderError || !orderData?.getOrder) {
-    console.error("Order not found or error:", orderError);
-    console.error("Order data:", orderData);
+     
     
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">

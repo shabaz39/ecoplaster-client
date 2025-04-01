@@ -2,17 +2,43 @@ import { ApolloClient, InMemoryCache } from "@apollo/client";
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import fetch from "cross-fetch"; //  for server-side fetching
 import { safeId } from '../utils/safeId'; // Import the safeId utility
+import { setContext } from '@apollo/client/link/context';
 
 const API_URL = "http://localhost:4000" 
 
-// 'https://ecoplaster-server-1.onrender.com'
+// Create the auth link to add the token to requests
+const authLink = setContext(async (_, { headers }) => {
+  // For client-side requests, we can try to get the session
+  let token = "";
+  
+  // In the browser, try to get the token from localStorage or wherever you store it
+  if (typeof window !== 'undefined') {
+    // If you store token in localStorage or have another way to access it
+    // You might need to adapt this based on how your auth system works
+    const session = localStorage.getItem('session');
+    if (session) {
+      try {
+        const parsedSession = JSON.parse(session);
+        token = parsedSession.token || "";
+      } catch (e) {
+        console.error("Failed to parse session", e);
+      }
+    }
+  }
+  
+  return {
+    headers: {
+      ...headers,
+      'Apollo-Require-Preflight': 'true',
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  };
+});
 
+// Create the upload link
 const uploadLink = createUploadLink({
     uri: `${API_URL}/graphql`,
     fetch,
-    headers: {
-        'Apollo-Require-Preflight': 'true',
-    },
     credentials: 'same-origin' // Change this from 'include' to 'same-origin'
 });
 
@@ -59,7 +85,7 @@ const cache = new InMemoryCache({
 });
 
 const client = new ApolloClient({
-    link: uploadLink,
+    link: authLink.concat(uploadLink), // Combine the auth link with the upload link
     cache: cache, // Use the enhanced cache configuration
     defaultOptions: {
       query: {

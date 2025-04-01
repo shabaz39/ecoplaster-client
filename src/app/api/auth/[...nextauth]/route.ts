@@ -43,14 +43,14 @@ const handler = NextAuth({
           
           if (data?.googleLogin?.user?.id) {
             user.id = data.googleLogin.user.id;
-            user.role = data.googleLogin.user.role; // ✅ Add this line
+            user.role = data.googleLogin.user.role || "user";
 
           }
           
           return true;
         } catch (error) {
           console.error("Error saving Google user to database:", error);
-          return true; // Allow sign-in even if DB save fails
+          return false; // Don't allow sign-in if DB save fails
         }
       }
       return true;

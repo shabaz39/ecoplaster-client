@@ -215,7 +215,7 @@ const CheckoutPage = () => {
         const orderId = responseJson.data.placeOrder.id;
         
         // Show success message first
-        toast.success("Order placed successfully!");
+        toast.success("Order initiated!");
         
         // Clear the cart
         clearCart();
