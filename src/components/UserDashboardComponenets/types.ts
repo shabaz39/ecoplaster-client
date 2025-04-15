@@ -11,6 +11,7 @@ export interface SessionUser {
   export interface ProductItem {
     productId: string;
     name: string;
+    code?: string | null; // <<< ADD THIS LINE (make optional)
     quantity: number;
     price: number;
     image: string;
@@ -27,17 +28,23 @@ export interface SessionUser {
     trackingNumber: string;
     shippingMethod: string;
     estimatedDelivery: string;
+     // --- Add Shiprocket fields ---
+     shiprocketOrderId?: string | null;
+     shiprocketShipmentId?: string | null;
+     shiprocketAWBCode?: string | null; // Shiprocket's AWB
+     shiprocketCourier?: string | null; // Shiprocket's Courier
+     // --- End Shiprocket fields ---
   }
   
   export interface Address {
     id: string;
-    type: string;
+    type?: string;
     street: string;
     city: string;
     state: string;
     zip: string;
     country: string;
-    isDefault: boolean;
+    isDefault?: boolean;
   }
   
   export interface WalletTransaction {
@@ -71,7 +78,7 @@ export interface SessionUser {
     wishlist: WishlistItem[];
     cart: Array<{productId: any, quantity: number}>;
     savedAddresses: Address[];
-    shippingAddress: Address[];
+    // shippingAddress: Address[];
     walletTransactions?: WalletTransaction[];
   }
   
@@ -103,7 +110,8 @@ export interface SessionUser {
     country: string;
     isDefault: boolean;
   }
-  
+
+ 
   // Order status steps definition for progress tracking
   export const orderStatusSteps = {
     "Pending": 0,
@@ -135,12 +143,13 @@ export interface SessionUser {
         return 'Invalid date';
       }
       
-      return date.toLocaleDateString('en-US', {
+      return date.toLocaleString('en-IN', { // Use Indian locale for consistency
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: true // Use AM/PM
       });
     } catch (error) {
       console.error('Error formatting date:', error, 'Value:', dateString);

@@ -1,33 +1,55 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
-import { useMutation, useLazyQuery } from "@apollo/client";
+import { useMutation, useLazyQuery, useQuery, gql } from "@apollo/client";
 import { 
-  CREATE_PAYMENT_ORDER, 
-  VERIFY_PAYMENT, 
-  HANDLE_PAYMENT_FAILURE,
-  GET_ORDER_BY_ID 
+  CREATE_PAYMENT_ORDER,
+  VERIFY_PAYMENT,
+  HANDLE_PAYMENT_FAILURE
 } from "../../../constants/queries/paymentQueries";
+import {
+  VERIFY_PAYMENT_AND_CONFIRM_ORDER
+} from "../../../constants/queries/paymentIntentQueries";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentStatusBanner } from "./PaymentStatusBanner";
 import { PaymentMethods } from "./PaymentMethods";
-import { ArrowLeft, CreditCard, AlertCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
+import { GET_PAYMENT_INTENT } from "../../../constants/queries/paymentIntentQueries";
 
 declare global {
   interface Window {
     Razorpay: any;
   }
 }
+ 
 
 interface PaymentPageProps {
-  orderId: string;
+  intentId: string;
 }
 
-const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
+// Define structure for OrderSummary based on AVAILABLE intent data
+interface IntentOrderSummaryData {
+  id: string;
+  products: Array<{
+      productId: string;
+      name: string; // Will be a placeholder
+      quantity: number;
+      price: number;
+      image?: string; // Will be undefined
+      code?: string; // Will be undefined
+  }>;
+  shippingAddress: any; // Use 'any' or define Address type from intent schema
+  totalAmount: number;
+  status: string; // Intent status
+}
+
+const PaymentPage: React.FC<PaymentPageProps> = ({ intentId }) => {
+   
+
   const router = useRouter();
   const { clearCart } = useCart();
   const { data: session } = useSession();
@@ -36,33 +58,32 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
 
-  console.log("PaymentPage initialized with orderId:", orderId);
-  console.log("Session data:", session);
+  console.log("PaymentPage initialized with intentId:", intentId);
 
-  // Get order details
-  const [getOrderDetails, { data: orderData, loading: orderLoading, error: orderError }] = useLazyQuery(
-    GET_ORDER_BY_ID, 
-    { 
-      variables: { id: orderId },  // <-- Use id instead of getOrderId
-      fetchPolicy: "network-only",
-      onCompleted: (data) => {
-        console.log("Order data successfully retrieved:", data);
-         // Log the entire response to see the structure
-      console.log("Full GraphQL response:", data);
-      },
-      onError: (error) => {
-        console.error("Error fetching order:", error);
-        console.error("Error details:", error.graphQLErrors, error.networkError);
-        if (error.networkError) {
-          console.error("Network error details:", error.networkError);
-        }
-        // Check server response if available
-        if (error.networkError && 'result' in error.networkError) {
-          console.error("Server error response:", error.networkError.result);
-        }
+  const [orderSummaryData, setOrderSummaryData] = useState<IntentOrderSummaryData | null>(null);
+
+  // Get payment intent data
+  const { data: intentData, loading: intentLoading, error: intentError } =  useQuery(GET_PAYMENT_INTENT, {
+    variables: { id: intentId },
+    fetchPolicy: "network-only",
+    skip: !intentId,
+
+    onCompleted: (data) => {
+      console.log("Payment intent data loaded:", data?.getPaymentIntent);
+      
+      // Check if intent has expired
+      if (data?.getPaymentIntent?.status === 'expired') {
+        toast.error("Payment session has expired. Please return to checkout and try again.");
+        setTimeout(() => {
+          router.push('/checkout');
+        }, 3000);
       }
+    },
+    onError: (error) => {
+      console.error("Error loading payment intent:", error);
+      toast.error("Could not load payment details. Please try again.");
     }
-  );
+  });
 
   // Create payment order mutation
   const [createPaymentOrder, { loading: creatingOrder }] = useMutation(CREATE_PAYMENT_ORDER, {
@@ -71,21 +92,27 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     },
     onError: (error) => {
       console.error("Error creating payment order:", error);
-      console.error("Error details:", error.graphQLErrors, error.networkError);
+      toast.error("Error creating payment. Please try again.");
     }
   });
 
-  // Verify payment mutation
-  const [verifyPayment] = useMutation(VERIFY_PAYMENT);
+  // Verify payment and confirm order mutation (new)
+  const [verifyPaymentAndConfirmOrder, { loading: verifyingAndConfirming }] = useMutation(VERIFY_PAYMENT_AND_CONFIRM_ORDER, {
+    onCompleted: (data) => {
+      console.log("Payment verified and order confirmed:", data);
+    },
+    onError: (error) => {
+      console.error("Error verifying payment:", error);
+      setPaymentStatus('failed');
+      setErrorMessage("Payment verification failed");
+      toast.error("Payment verification failed. Please contact support.");
+    }
+  });
 
-  // Handle payment failure mutation
+  // Handle payment failure
   const [handlePaymentFailure] = useMutation(HANDLE_PAYMENT_FAILURE);
 
-  
-
   useEffect(() => {
-    console.log("Loading order details for ID:", orderId);
-    
     // Load Razorpay script
     const loadRazorpayScript = () => {
       return new Promise<void>((resolve) => {
@@ -104,13 +131,6 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
       });
     };
 
-    // Get order details when component mounts
-    if (orderId) {
-      getOrderDetails({ variables: { id: orderId } });
-    } else {
-      console.error("No orderId provided to payment page");
-    }
-
     // Load Razorpay script if not already loaded
     if (typeof window !== 'undefined') {
       if (!window.Razorpay) {
@@ -121,38 +141,38 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
         setIsRazorpayLoaded(true);
       }
     }
-  }, [getOrderDetails, orderId]);
+  }, []);
 
-  // Handle order creation and payment initiation
+  // Handle payment initiation
   const handlePayment = async () => {
-    if (!orderData?.getOrder) {
-      console.error("Order data not available:", orderData);
-      toast.error("Order details not available");
+    if (!intentData?.getPaymentIntent) {
+      console.error("Payment intent data not available");
+      toast.error("Payment details not available");
       return;
     }
 
     try {
       setPaymentStatus('processing');
-      const order = orderData.getOrder;
+      const intent = intentData.getPaymentIntent;
       
-      console.log("Creating payment order for:", order.id);
-    console.log("Order details:", JSON.stringify(order, null, 2));
-    console.log("Session user ID:", session?.user?.id);
+      console.log("Creating payment order for intent:", intent.id);
+
+      console.log("Intent data available:", !!intentData?.getPaymentIntent);
+console.log("Session user ID:", session?.user?.id);
+console.log("Intent user ID:", intent.userId);
+console.log("Intent total amount:", intent.totalAmount);
       
-      // Create payment order
+      // Create Razorpay order
       const { data: paymentOrderData } = await createPaymentOrder({
         variables: {
           input: {
-            orderId: order.id,
-            userId: session?.user?.id || order.userId,
-            amount: order.totalAmount,
+            intentId: intent.id, // Use a temporary orderId 
+            userId: session?.user?.id || intent.userId,
+            amount: intent.totalAmount,
             currency: "INR",
             notes: {
-              orderItems: JSON.stringify(order.products.map((p: any) => ({ 
-                id: p.productId, 
-                name: p.name,
-                quantity: p.quantity 
-              }))),
+              intentId: intent.id,
+              // Add any other relevant info
             }
           }
         }
@@ -163,7 +183,6 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
       }
 
       console.log("Payment order created:", paymentOrderData.createPaymentOrder);
-      console.log("Razorpay key:", paymentOrderData.createPaymentOrder.key);
 
       // Init Razorpay payment flow
       const options = {
@@ -171,12 +190,12 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
         amount: paymentOrderData.createPaymentOrder.amount * 100, // Amount in paise
         currency: paymentOrderData.createPaymentOrder.currency,
         name: "Ecoplaster",
-        description: `Payment for Order #${order.id}`,
+        description: `Payment for Order`,
         order_id: paymentOrderData.createPaymentOrder.razorpayOrderId,
         prefill: {
-          name: order.shippingAddress?.name || "",
+          name: session?.user?.name || "",
           email: session?.user?.email || "",
-          contact: order.shippingAddress?.phoneNumber || "",
+          contact: intent.shippingAddress?.phoneNumber || "",
         },
         theme: {
           color: "#10b981", // Using the newgreensecond color
@@ -188,40 +207,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
           },
         },
         handler: async function(response: any) {
-          try {
-            console.log("Payment success response:", response);
-            
-            // Verify payment with backend
-            const result = await verifyPayment({
-              variables: {
-                input: {
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                }
-              }
-            });
-            
-            console.log("Verification result:", JSON.stringify(result, null, 2));
-            
-            if (result.data && result.data.verifyPayment) {
-              setPaymentStatus('success');
-              toast.success("Payment successful!");
-              // Clear cart after successful payment
-              clearCart();
-              // Redirect to success page
-              setTimeout(() => {
-                router.push(`/payment/success?orderId=${order.id}`);
-              }, 2000);
-            } else {
-              console.error("Verification data is missing:", result);
-              throw new Error("Payment verification failed");
-            }
-          } catch (error) {
-            console.error("Payment verification error:", error);
-            setPaymentStatus('failed');
-            setErrorMessage("Payment verification failed");
-          }
+          await handlePaymentSuccess(response);
         },
       };
 
@@ -269,7 +255,52 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     }
   };
 
-  if (orderLoading) {
+  // Handle successful payment
+  const handlePaymentSuccess = async (response: any) => {
+    try {
+      console.log("Payment success response:", response);
+      
+      // Verify payment and confirm order in one step
+      const { data } = await verifyPaymentAndConfirmOrder({
+        variables: {
+          input: {
+            intentId: intentId,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          }
+        }
+      });
+      
+      console.log("Verification and order confirmation result:", data);
+      
+      if (data?.verifyPaymentAndConfirmOrder?.success) {
+        setPaymentStatus('success');
+        toast.success("Payment successful!");
+        
+        // Clear cart after successful payment
+        clearCart();
+        
+        // Save last order ID for reference
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastOrderId', data.verifyPaymentAndConfirmOrder.orderId);
+        }
+        
+        // Redirect to success page with the newly created order ID
+        setTimeout(() => {
+          router.push(`/payment/success?orderId=${data.verifyPaymentAndConfirmOrder.orderId}`);
+        }, 2000);
+      } else {
+        throw new Error("Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Payment verification error:", error);
+      setPaymentStatus('failed');
+      setErrorMessage("Payment verification failed");
+    }
+  };
+
+  if (intentLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-newgreensecond"></div>
@@ -277,34 +308,42 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
     );
   }
 
-  if (orderError || !orderData?.getOrder) {
-     
-    
+  if (intentError || !intentData?.getPaymentIntent) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <AlertCircle size={48} className="text-red-500 mb-4" />
-        <h1 className="text-xl font-semibold text-gray-800 mb-2">Order Not Found</h1>
+        <h1 className="text-xl font-semibold text-gray-800 mb-2">Payment Session Not Found</h1>
         <p className="text-gray-600 mb-6">
-          We couldn't find the order details.
-          {orderError && (
+          Your payment session may have expired or is invalid.
+          {intentError && (
             <span className="block mt-2 text-red-500 text-sm">
-              Error: {orderError.message}
+              Error: {intentError.message}
             </span>
           )}
         </p>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push('/checkout')}
           className="flex items-center text-white bg-newgreensecond px-6 py-2 rounded-md hover:bg-newgreen transition-colors"
         >
           <ArrowLeft size={16} className="mr-2" />
-          Go Back
+          Return to Checkout
         </button>
       </div>
     );
   }
 
-  const order = orderData.getOrder;
-  console.log("Order details ready for rendering:", order);
+  const intent = intentData.getPaymentIntent;
+  // Create a compatible order object for OrderSummary component
+  const orderForSummary = {
+    id: intent.id,
+    products: intent.products.map((p:any) => ({ // <<< ERROR HAPPENS HERE
+      ...p,
+      name: p.name || `Product #${p.productId.slice(-6)}`, // Fallback name if missing
+    })),
+    shippingAddress: intent.shippingAddress,
+    totalAmount: intent.totalAmount,
+    status: intent.status
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 text-black">
@@ -312,11 +351,11 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center">
           <button 
-            onClick={() => router.back()}
+            onClick={() => router.push('/checkout')}
             className="flex items-center text-black hover:text-newgreensecond"
           >
             <ArrowLeft size={20} className="mr-2" />
-            Back
+            Back to Checkout
           </button>
           <h1 className="text-xl font-semibold text-black mx-auto">Payment</h1>
         </div>
@@ -348,16 +387,16 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
             <div className="mt-8">
               <button
                 onClick={handlePayment}
-                disabled={!isRazorpayLoaded || creatingOrder || paymentStatus === 'processing' || paymentStatus === 'success'}
+                disabled={!isRazorpayLoaded || creatingOrder || verifyingAndConfirming || paymentStatus === 'processing' || paymentStatus === 'success'}
                 className={`w-full py-4 font-medium rounded-lg flex items-center justify-center gap-2
-                  ${!isRazorpayLoaded || creatingOrder || paymentStatus === 'processing' || paymentStatus === 'success'
+                  ${!isRazorpayLoaded || creatingOrder || verifyingAndConfirming || paymentStatus === 'processing' || paymentStatus === 'success'
                     ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                     : 'bg-newgreensecond text-white hover:bg-newgreen transition-colors'
                   }`}
               >
-                {creatingOrder || paymentStatus === 'processing' ? (
+                {creatingOrder || verifyingAndConfirming || paymentStatus === 'processing' ? (
                   <>
-                    <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></span>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Processing...
                   </>
                 ) : (
@@ -370,7 +409,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ orderId }) => {
 
         {/* Right Section - Order Summary */}
         <div className="w-full md:w-96">
-          <OrderSummary order={order} />
+          <OrderSummary order={orderForSummary} />
         </div>
       </div>
     </div>

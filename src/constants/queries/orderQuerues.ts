@@ -2,29 +2,42 @@
 import { gql } from '@apollo/client';
 
 export const GET_ALL_ORDERS = gql`
-  query GetAllOrders {
-    getAllOrders {
+  query GetAllOrders($status: String, $limit: Int, $offset: Int) {
+    getAllOrders(status: $status, limit: $limit, offset: $offset) {
       id
       userId
       products {
         productId
         quantity
         price
+        name
+        code
+        image
       }
       totalAmount
       shippingAddress {
+        type
         street
         city
         state
         country
         zip
+        phoneNumber
       }
       billingAddress {
+        type
         street
         city
         state
         country
         zip
+        phoneNumber
+      }
+      packageDetails {
+        weight
+        length
+        breadth
+        height
       }
       paymentMethod
       paymentStatus
@@ -39,6 +52,10 @@ export const GET_ALL_ORDERS = gql`
         updatedAt
       }
       createdAt
+      shiprocketOrderId
+      shiprocketShipmentId
+      shiprocketAWBCode
+      shiprocketCourier
     }
   }
 `;
@@ -52,21 +69,34 @@ export const GET_USER_ORDERS = gql`
         productId
         quantity
         price
+        name
+        code
+        image
       }
       totalAmount
       shippingAddress {
+        type
         street
         city
         state
         country
         zip
+        phoneNumber
       }
       billingAddress {
+        type
         street
         city
         state
         country
         zip
+        phoneNumber
+      }
+      packageDetails {
+        weight
+        length
+        breadth
+        height
       }
       paymentMethod
       paymentStatus
@@ -81,6 +111,10 @@ export const GET_USER_ORDERS = gql`
         updatedAt
       }
       createdAt
+      shiprocketOrderId
+      shiprocketShipmentId
+      shiprocketAWBCode
+      shiprocketCourier
     }
   }
 `;
@@ -90,25 +124,43 @@ export const GET_ORDER = gql`
     getOrder(id: $id) {
       id
       userId
+      user {
+        id
+        name
+        email
+      }
       products {
         productId
         quantity
         price
+        name
+        code
+        image
       }
       totalAmount
       shippingAddress {
+        type
         street
         city
         state
         country
         zip
+        phoneNumber
       }
       billingAddress {
+        type
         street
         city
         state
         country
         zip
+        phoneNumber
+      }
+      packageDetails {
+        weight
+        length
+        breadth
+        height
       }
       paymentMethod
       paymentStatus
@@ -123,6 +175,10 @@ export const GET_ORDER = gql`
         updatedAt
       }
       createdAt
+      shiprocketOrderId
+      shiprocketShipmentId
+      shiprocketAWBCode
+      shiprocketCourier
     }
   }
 `;
@@ -138,6 +194,53 @@ export const GET_ORDER_STATS = gql`
         count
         revenue
       }
+    }
+  }
+`;
+
+export const PLACE_ORDER = gql`
+  mutation PlaceOrder($userId: ID!, $orderInput: OrderInput!) {
+    placeOrder(userId: $userId, orderInput: $orderInput) {
+      id
+      userId
+      products {
+        productId
+        quantity
+        price
+        name
+        code
+        image
+      }
+      totalAmount
+      shippingAddress {
+        type
+        street
+        city
+        state
+        country
+        zip
+        phoneNumber
+      }
+      billingAddress {
+        type
+        street
+        city
+        state
+        country
+        zip
+        phoneNumber
+      }
+      packageDetails {
+        weight
+        length
+        breadth
+        height
+      }
+      paymentMethod
+      paymentStatus
+      status
+      trackingNumber
+      createdAt
     }
   }
 `;
@@ -174,25 +277,6 @@ export const ADD_ORDER_NOTE = gql`
   }
 `;
 
-export const PLACE_ORDER = gql`
-  mutation PlaceOrder($userId: ID!, $orderInput: OrderInput!) {
-    placeOrder(userId: $userId, orderInput: $orderInput) {
-      id
-      totalAmount
-      status
-      paymentStatus
-      trackingNumber
-      createdAt
-      products {
-        productId
-        name
-        quantity
-        price
-      }
-    }
-  }
-`;
-
 export const CANCEL_ORDER = gql`
   mutation CancelOrder($orderId: ID!, $userId: ID!) {
     cancelOrder(orderId: $orderId, userId: $userId) {
@@ -201,6 +285,7 @@ export const CANCEL_ORDER = gql`
     }
   }
 `;
+ 
 
 // Order status constants
 export const ORDER_STATUSES = {
@@ -226,6 +311,53 @@ export const PAYMENT_METHODS = {
   COD: 'COD',
   NET_BANKING: 'Net Banking'
 };
+
+// Types for TypeScript
+export interface AddressInput {
+  type: string;
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  zip: string;
+  phoneNumber: string;
+  isDefault?: boolean;
+}
+
+export interface ShiprocketPackageInput {
+  weight: number;
+  length?: number;
+  breadth?: number;
+  height?: number;
+}
+
+export interface ProductOrderInput {
+  productId: string;
+  quantity: number;
+  price: number;
+}
+
+export interface OrderInput {
+  products: ProductOrderInput[];
+  totalAmount: number;
+  shippingAddress: AddressInput;
+  billingAddress?: AddressInput;
+  packageDetails?: ShiprocketPackageInput;
+  paymentMethod: string;
+  paymentStatus: string;
+  transactionId?: string;
+}
+
+export interface ShiprocketReturnPickupInput {
+  pickup_location: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pin_code: string;
+  phone: string;
+  name: string;
+}
 
 // Status badge colors
 export const getStatusBadgeClass = (status: string) => {

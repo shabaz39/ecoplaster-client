@@ -6,29 +6,44 @@ import PaymentPage from "../../components/Payment,Returns&RefundsComponent/Payme
 import ProtectedRoute from "../../components/ProtectedRoute";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useQuery } from "@apollo/client";
+import { 
+  GET_PAYMENT_INTENT
+} from "@/constants/queries/paymentIntentQueries";
 
 const PaymentRoute = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { status } = useSession();
+  
+  // Support both intentId (new) and orderId (legacy)
+  const intentId = searchParams.get("intentId");
   const orderId = searchParams.get("orderId");
+
+  const { data: intentData } = useQuery(GET_PAYMENT_INTENT, {
+    variables: { id: intentId }
+  });
   
   useEffect(() => {
     // If loading is complete and user is not authenticated, redirect to login
     if (status === 'unauthenticated') {
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(`/payment?orderId=${orderId || ''}`)}`);
+      const returnUrl = intentId 
+        ? `/payment?intentId=${intentId}` 
+        : `/payment?orderId=${orderId || ''}`;
+      
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(returnUrl)}`);
       return;
     }
     
-    // If there's no orderId in the URL but one in localStorage, use that
-    if (!orderId && typeof window !== 'undefined' && status === 'authenticated') {
+    // If there's no intentId or orderId in the URL, check localStorage
+    if (!intentId && !orderId && typeof window !== 'undefined' && status === 'authenticated') {
       const storedOrderId = localStorage.getItem('lastOrderId');
       if (storedOrderId) {
         console.log("Using stored orderId:", storedOrderId);
         router.replace(`/payment?orderId=${storedOrderId}`);
       }
     }
-  }, [orderId, router, status]);
+  }, [intentId, orderId, router, status]);
   
   // Show loading state while checking session
   if (status === 'loading') {
@@ -39,14 +54,14 @@ const PaymentRoute = () => {
     );
   }
   
-  // Show "missing order" UI if no orderId is found
-  if (!orderId) {
+  // Show "missing payment info" UI if no intentId/orderId is found
+  if (!intentId && !orderId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-sm p-8 max-w-md w-full text-center">
-          <h1 className="text-xl font-semibold text-red-600 mb-2">Missing Order Information</h1>
+          <h1 className="text-xl font-semibold text-red-600 mb-2">Missing Payment Information</h1>
           <p className="text-gray-600 mb-4">
-            No order ID was provided. Please return to checkout and try again.
+            No payment session was found. Please return to checkout and try again.
           </p>
           <Link
             href="/checkout"
@@ -59,10 +74,16 @@ const PaymentRoute = () => {
     );
   }
   
-  // If we have an orderId and the user is authenticated, show the protected payment page
+  // If we have payment info and the user is authenticated, show the protected payment page
   return (
     <ProtectedRoute allowedRoles={["user", "admin"]}>
-      <PaymentPage orderId={orderId} />
+      {intentId ? (
+        <PaymentPage intentId={intentId} />
+      ) : (
+        // For backward compatibility - pass the orderId but use type assertion
+        // This is a temporary solution until you fully migrate to intentId
+        <PaymentPage intentId={orderId as string} />
+      )}
     </ProtectedRoute>
   );
 };

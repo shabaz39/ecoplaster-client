@@ -159,34 +159,6 @@ query GetOrder($id: ID!) {
         notes
         createdAt
       }
-      cancelledOrders {
-        id
-        userId
-        totalAmount
-        paymentMethod
-        paymentStatus
-        trackingNumber
-        shippingMethod
-        transactionId
-        status
-        estimatedDelivery
-        notes
-        createdAt
-      }
-      returnedOrders {
-        id
-        userId
-        totalAmount
-        paymentMethod
-        paymentStatus
-        trackingNumber
-        shippingMethod
-        transactionId
-        status
-        estimatedDelivery
-        notes
-        createdAt
-      }
       role
       isActive
       accountLocked
@@ -275,6 +247,16 @@ query GetOrder($id: ID!) {
       updatedAt
     }
     createdAt
+    packageDetails {
+      weight
+      length
+      breadth
+      height
+    }
+    shiprocketOrderId
+    shiprocketShipmentId
+    shiprocketAWBCode
+    shiprocketCourier
   }
 }
 `;

@@ -2,14 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
-import { CreditCard, Truck, CheckCircle, ArrowLeft, Tag } from "lucide-react";
+import { CreditCard, Truck, CheckCircle, ArrowLeft, Tag, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import SignupModal from "../../components/HomepageComponents/Signup";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { VALIDATE_PROMO_CODE } from "@/constants/queries/promotionQueries";
-import { PLACE_ORDER } from "@/constants/queries/orderQuerues";
+// Import the new mutations instead of PLACE_ORDER
+import { 
+  CREATE_PAYMENT_INTENT,
+  CONFIRM_ORDER, 
+  PaymentIntentInput 
+} from "@/constants/queries/paymentIntentQueries";
 import { toast } from "react-toastify";
+import { SessionUser } from "../UserDashboardComponenets/types";
 
 interface Promotion {
   id: string;
@@ -20,6 +26,17 @@ interface Promotion {
   minimumPurchase: number;
 }
 
+// Define the type for shipping info state
+interface ShippingInfoState {
+    name: string;
+    address: string; // Corresponds to 'street'
+    city: string;
+    state: string;
+    zip: string;
+    phone: string;
+    country: string;
+}
+
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useCart();
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -27,236 +44,255 @@ const CheckoutPage = () => {
   const { data: session, status } = useSession();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [shippingInfo, setShippingInfo] = useState({
+
+  // --- State for Shipping Info ---
+  const [shippingInfo, setShippingInfo] = useState<ShippingInfoState>({
     name: "",
     address: "",
     city: "",
+    state: "",
     zip: "",
     phone: "",
+    country: "India" // Default country
   });
+
   const [paymentMethod, setPaymentMethod] = useState("card");
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/checkout';
-  
-  // Promotion code state
+
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null);
-  const [shippingFee] = useState(50); // Fixed shipping fee
+  const [shippingFee] = useState(50);
 
-  // GraphQL query for promotion validation
+  // GraphQL Queries and Mutations
   const [validatePromoCode, { loading: validatingPromo }] = useLazyQuery(VALIDATE_PROMO_CODE, {
     onCompleted: (data) => {
       console.log('Promotion validation response:', data);
       if (data?.validatePromoCode) {
         const promotion = data.validatePromoCode;
-        setAppliedPromo(promotion);
-        
-        // Check minimum purchase requirement
+        // Check minimum purchase before applying
         if (subtotal < promotion.minimumPurchase) {
-          toast.info(`This promotion requires a minimum purchase of ₹${promotion.minimumPurchase}`);
+          toast.info(`Minimum purchase of ₹${promotion.minimumPurchase} required for code ${promotion.code}.`);
+          setAppliedPromo(null); // Don't apply if minimum not met
         } else {
+          setAppliedPromo(promotion);
           toast.success('Promotion code applied successfully!');
         }
-        
-        setPromoCode("");
+        setPromoCode(""); // Clear input regardless
+      } else {
+         // Handle case where validatePromoCode returns null or is missing
+         toast.error('Invalid or expired promotion code.');
+         setAppliedPromo(null);
       }
     },
     onError: (error) => {
-      console.error('Promo validation error:', error);
-      toast.error(error.message || 'Invalid promotion code');
+      console.error('Error validating promo code:', error);
+      toast.error('Error validating promotion code. Please try again.');
+      setAppliedPromo(null);
     },
     fetchPolicy: 'network-only'
   });
 
-  // Create order mutation
-  const [createOrder, { loading: creatingOrder }] = useMutation(PLACE_ORDER);
+  // New mutations for two-step order creation
+  const [createPaymentIntent, { loading: creatingIntent }] = useMutation(CREATE_PAYMENT_INTENT, {
+    onError: (error) => {
+      console.error('Error creating payment intent:', error);
+      let errorMessage = "Failed to process order. Please try again.";
+      if (error.graphQLErrors?.length > 0) {
+        errorMessage = error.graphQLErrors[0].message;
+      } else if (error.networkError) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      toast.error(errorMessage);
+    }
+  });
+
+  const [confirmOrder, { loading: confirmingOrder }] = useMutation(CONFIRM_ORDER, {
+    onError: (error) => {
+      console.error('Error confirming order:', error);
+      let errorMessage = "Failed to place order. Please try again.";
+      if (error.graphQLErrors?.length > 0) {
+        errorMessage = error.graphQLErrors[0].message;
+      } else if (error.networkError) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      toast.error(errorMessage);
+    }
+  });
 
   // Calculate discount amount
   const calculateDiscount = () => {
-    if (!appliedPromo) return 0;
-    
-    // Check if subtotal meets minimum purchase requirement
-    if (subtotal < appliedPromo.minimumPurchase) {
-      return 0;
-    }
-    
+    if (!appliedPromo || subtotal < appliedPromo.minimumPurchase) return 0;
+
     return appliedPromo.discountType === 'PERCENTAGE'
       ? (subtotal * appliedPromo.discountValue / 100)
-      : Math.min(appliedPromo.discountValue, subtotal); // Cap fixed discount at subtotal
+      : Math.min(appliedPromo.discountValue, subtotal);
   };
-  
+
   const discount = calculateDiscount();
   const totalPrice = subtotal + shippingFee - discount;
-  
+
   const handleApplyPromoCode = () => {
     if (!promoCode.trim()) {
-      toast.error('Please enter a promotion code');
+      toast.warning('Please enter a promotion code');
       return;
     }
     
-    console.log('Validating promo code:', promoCode.trim());
-    validatePromoCode({ 
-      variables: { code: promoCode.trim() } 
+    validatePromoCode({
+      variables: { code: promoCode.trim() }
     });
   };
   
-  const handleRemovePromo = () => {
-    setAppliedPromo(null);
+  const handleRemovePromo = () => { 
+    setAppliedPromo(null); 
   };
 
-  const handleInputChange = (e: any) => {
+  // Input Handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingInfo({ ...shippingInfo, [e.target.name]: e.target.value });
   };
 
   const handlePlaceOrder = async () => {
     console.log("Session status:", status);
-    console.log("Session data:", session);
-    
+
     if (status !== "authenticated" || !session?.user) {
-      console.log("No authenticated session, showing login modal");
+      console.log("User not authenticated. Showing login modal.");
       setIsLoginOpen(true);
       return;
     }
-    
-    // Validate shipping info
-    const requiredFields = ["name", "address", "city", "zip", "phone"];
-    const missingFields = requiredFields.filter(field => {
-      return !shippingInfo[field as keyof typeof shippingInfo];
-    });
-    
+
+    // --- Validation ---
+    const requiredFields: (keyof ShippingInfoState)[] = ["name", "address", "city", "state", "zip", "phone"];
+    const missingFields = requiredFields.filter(field => !shippingInfo[field]?.trim());
+
     if (missingFields.length > 0) {
-      toast.error(`Please fill in all required shipping information: ${missingFields.join(", ")}`);
+      toast.error(`Please fill in required fields: ${missingFields.join(", ")}`);
       return;
     }
-  
-    // Validate cart is not empty
+    
+    if (shippingInfo.zip.length !== 6 || !/^\d+$/.test(shippingInfo.zip)) {
+      toast.error('Please enter a valid 6-digit PIN code.');
+      return;
+    }
+    
+    if (shippingInfo.phone.length !== 10 || !/^\d+$/.test(shippingInfo.phone)) {
+      toast.error('Please enter a valid 10-digit phone number.');
+      return;
+    }
+    
     if (cartItems.length === 0) {
-      toast.error("Your cart is empty. Please add items before proceeding.");
+      toast.error("Your cart is empty.");
       return;
     }
-  
+    // --- End Validation ---
+
+    setIsSubmitting(true);
+    
     try {
-      setIsSubmitting(true);
-      
-      // Create order input that exactly matches what your server expects
-      const orderInput = {
+      // --- Construct AddressInput ---
+      const addressInput = {
+        type: "Shipping",
+        street: shippingInfo.address,
+        city: shippingInfo.city,
+        state: shippingInfo.state,
+        zip: shippingInfo.zip,
+        country: shippingInfo.country,
+        phoneNumber: shippingInfo.phone,
+        isDefault: false
+      };
+
+      // Create payment intent input
+      const userId = (session.user as SessionUser)?.id;
+if (!userId) {
+  throw new Error("User ID is required");
+}
+      const paymentIntentInput: PaymentIntentInput = {
+        userId: userId,
         products: cartItems.map(item => ({
           productId: item.id,
           quantity: item.quantity,
           price: item.price
         })),
         totalAmount: totalPrice,
-        shippingAddress: {
-          type: "Shipping",
-          street: shippingInfo.address,
-          city: shippingInfo.city,
-          state: "", 
-          zip: shippingInfo.zip,
-          country: "India"
-        },
-        billingAddress: {
-          type: "Billing",
-          street: shippingInfo.address,
-          city: shippingInfo.city,
-          state: "", 
-          zip: shippingInfo.zip,
-          country: "India"
-        },
-        paymentMethod: paymentMethod === "card" ? "Card" : "COD",
-        paymentStatus: "Pending"
+        shippingAddress: addressInput,
+        billingAddress: addressInput, // Using same address for billing
+        paymentMethod: paymentMethod === "card" ? "Card" : "COD"
       };
-      
-      console.log("Submitting order with data:", { 
-        userId: session.user.id, 
-        orderInput 
+
+      console.log("Creating payment intent with:", paymentIntentInput);
+
+      // Create payment intent
+      const { data } = await createPaymentIntent({
+        variables: {
+          input: paymentIntentInput
+        }
       });
-      
-      // Use fetch without credentials to bypass CORS issues
-      try {
-        const response = await fetch('http://localhost:4000/graphql', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: `
-              mutation PlaceOrder($userId: ID!, $orderInput: OrderInput!) {
-                placeOrder(userId: $userId, orderInput: $orderInput) {
-                  id
-                  status
-                  totalAmount
-                }
-              }
-            `,
-            variables: {
-              userId: session.user.id,
-              orderInput: orderInput
-            }
-          })
-        });
+
+ 
+      if (!data?.createPaymentIntent?.id) {
+        throw new Error("Failed to create payment intent");
+      }
+
+      const paymentIntentId = data.createPaymentIntent.id;
+      console.log("Payment intent created with ID:", paymentIntentId);
+
+      router.push(`/payment?intentId=${paymentIntentId}`);
+
+
+      // For COD orders, confirm immediately
+      if (paymentMethod === "cod") {
+        console.log("Processing COD order...");
         
-        const responseText = await response.text();
-        console.log("Raw GraphQL response:", responseText);
-        
-        if (!response.ok) {
-          throw new Error(`Server returned ${response.status}: ${responseText}`);
-        }
-        
-        const responseJson = JSON.parse(responseText);
-        console.log("Parsed response:", responseJson);
-        
-        if (responseJson.errors) {
-          throw new Error(responseJson.errors[0].message);
-        }
-        
-        if (!responseJson.data || !responseJson.data.placeOrder) {
-          throw new Error("No order data returned");
-        }
-        
-        const orderId = responseJson.data.placeOrder.id;
-        
-        // Show success message first
-        toast.success("Order initiated!");
-        
-        // Clear the cart
-        clearCart();
-        
-        // Save important data to local storage for recovery if needed
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('lastOrderId', orderId);
-          localStorage.setItem('userRole', session.user.role || "User");
-        }
-        
-        // Use a slight delay then redirect
-        setTimeout(() => {
-          if (paymentMethod === "card") {
-            console.log("Navigating to payment page", `/payment?orderId=${orderId}`);
-            // Ensure we're passing the session information properly
-            router.push(`/payment?orderId=${orderId}`);
-          } else {
-            console.log("Navigating to confirmation page", `/order/confirmation?orderId=${orderId}`);
-            router.push(`/order/confirmation?orderId=${orderId}`);
+        const { data: orderData } = await confirmOrder({
+          variables: {
+            paymentIntentId,
+            paymentStatus: "Pending" // COD payment is pending until delivery
           }
-        }, 500);
-        
-      } catch (fetchError: any) {
-        console.error("Fetch error:", fetchError);
-        throw new Error(`Request failed: ${fetchError.message}`);
+        });
+
+        if (!orderData?.confirmOrder?.id) {
+          throw new Error("Failed to confirm order");
+        }
+
+        toast.success("Order placed successfully!");
+        clearCart();
+
+        // Save last order ID for reference
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastOrderId', orderData.confirmOrder.id);
+          localStorage.setItem('userRole', (session.user as SessionUser).role || "User");
+        }
+
+        // Redirect to confirmation page
+        router.push(`/payment/success?orderId=${orderData.confirmOrder.id}`);
+      } else {
+        // For card payments, redirect to payment page with intent ID
+        console.log("Redirecting to payment page with intent ID:", paymentIntentId);
+        router.push(`/payment?intentId=${paymentIntentId}`);
       }
     } catch (error: any) {
-      console.error("Error creating order:", error);
-      toast.error(`Failed to place order: ${error.message}`);
+      console.error("Error processing order:", error);
+      let errorMessage = "Failed to process order. Please try again.";
+      
+      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+          errorMessage = error.graphQLErrors[0].message;
+      } else if (error.networkError) {
+          errorMessage = `Network error: ${error.networkError.message}`;
+      } else if (error.message) {
+          errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  
+
   return (
     <div className="min-h-screen bg-gray-50 text-black">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center">
-          <button 
+          <button
             onClick={() => router.back()}
             className="flex items-center text-black hover:text-newgreensecond"
           >
@@ -274,52 +310,93 @@ const CheckoutPage = () => {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6 text-black">
             <h2 className="text-lg font-semibold text-black mb-4">Shipping Information</h2>
             <div className="space-y-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Full Name*"
-                value={shippingInfo.name}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
-                required
-              />
-              <input
-                type="text"
-                name="phone"
-                placeholder="Phone Number*"
-                value={shippingInfo.phone}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
-                required
-              />
-              <input
-                type="text"
-                name="address"
-                placeholder="Address*"
-                value={shippingInfo.address}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
-                required
-              />
-              <div className="flex flex-col sm:flex-row gap-4">
+              {/* Name Input */}
+              <div>
+                <label htmlFor="name" className="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
                 <input
+                  id="name"
                   type="text"
-                  name="city"
-                  placeholder="City*"
-                  value={shippingInfo.city}
+                  name="name"
+                  placeholder="Enter your full name"
+                  value={shippingInfo.name}
                   onChange={handleInputChange}
-                  className="w-full sm:w-1/2 p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                  className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-newgreensecond focus:border-newgreensecond"
                   required
                 />
+              </div>
+              {/* Phone Input */}
+               <div>
+                <label htmlFor="phone" className="block text-xs font-medium text-gray-600 mb-1">10-Digit Phone Number *</label>
                 <input
-                  type="text"
-                  name="zip"
-                  placeholder="PIN Code*"
-                  value={shippingInfo.zip}
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  placeholder="Enter your phone number"
+                  value={shippingInfo.phone}
                   onChange={handleInputChange}
-                  className="w-full sm:w-1/2 p-3 border border-gray-200 rounded-md focus:outline-none focus:border-newgreensecond"
+                  className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-newgreensecond focus:border-newgreensecond"
                   required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                 />
+               </div>
+              {/* Address (Street) Input */}
+              <div>
+                 <label htmlFor="address" className="block text-xs font-medium text-gray-600 mb-1">Street Address *</label>
+                 <input
+                    id="address"
+                    type="text"
+                    name="address"
+                    placeholder="House No, Building, Street, Area"
+                    value={shippingInfo.address}
+                    onChange={handleInputChange}
+                    className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-newgreensecond focus:border-newgreensecond"
+                    required
+                 />
+              </div>
+              {/* City, State, Zip Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label htmlFor="city" className="block text-xs font-medium text-gray-600 mb-1">City *</label>
+                    <input
+                      id="city"
+                      type="text"
+                      name="city"
+                      placeholder="City"
+                      value={shippingInfo.city}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-newgreensecond focus:border-newgreensecond"
+                      required
+                    />
+                </div>
+                <div>
+                    <label htmlFor="state" className="block text-xs font-medium text-gray-600 mb-1">State *</label>
+                    <input
+                      id="state"
+                      type="text"
+                      name="state"
+                      placeholder="State"
+                      value={shippingInfo.state}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-newgreensecond focus:border-newgreensecond"
+                      required
+                    />
+                </div>
+                 <div>
+                    <label htmlFor="zip" className="block text-xs font-medium text-gray-600 mb-1">PIN Code *</label>
+                    <input
+                        id="zip"
+                        type="text" // Use text to allow leading zeros if needed, pattern enforces digits
+                        name="zip"
+                        placeholder="6-Digit PIN Code"
+                        value={shippingInfo.zip}
+                        onChange={handleInputChange}
+                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-newgreensecond focus:border-newgreensecond"
+                        required
+                        maxLength={6}
+                        pattern="[0-9]{6}"
+                    />
+                 </div>
               </div>
               <p className="text-xs text-gray-500">* Required fields</p>
             </div>
@@ -327,154 +404,124 @@ const CheckoutPage = () => {
 
           {/* Payment Method */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-black mb-4">Payment Method</h2>
-            <div className="grid grid-cols-2 gap-4">
+             <h2 className="text-lg font-semibold text-black mb-4">Payment Method</h2>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
-                className={`p-4 rounded-lg border-2 flex items-center justify-center gap-3 ${
+                className={`p-4 rounded-lg border-2 flex items-center justify-start text-left gap-3 ${
                   paymentMethod === "card"
-                    ? "border-newgreensecond bg-green-50"
-                    : "border-gray-200"
+                    ? "border-newgreensecond bg-green-50 ring-1 ring-newgreensecond"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
                 onClick={() => setPaymentMethod("card")}
               >
-                <CreditCard className={paymentMethod === "card" ? "text-newgreensecond" : "text-gray-400"} />
-                <div className="text-left">
-                  <span className={paymentMethod === "card" ? "text-newgreensecond font-medium" : "text-gray-600"}>
-                    Card Payment
+                <CreditCard className={`h-6 w-6 flex-shrink-0 ${paymentMethod === "card" ? "text-newgreensecond" : "text-gray-400"}`} />
+                <div>
+                  <span className={`text-sm font-medium ${paymentMethod === "card" ? "text-newgreensecond" : "text-gray-700"}`}>
+                    Online Payment
                   </span>
-                  <p className="text-xs text-gray-500">Credit/Debit Card, UPI, NetBanking</p>
+                  <p className="text-xs text-gray-500">Card / UPI / NetBanking</p>
                 </div>
               </button>
-              <button
-                className={`p-4 rounded-lg border-2 flex items-center justify-center gap-3 ${
-                  paymentMethod === "cod"
-                    ? "border-newgreensecond bg-green-50"
-                    : "border-gray-200"
-                }`}
-                onClick={() => setPaymentMethod("cod")}
-              >
-                <Truck className={paymentMethod === "cod" ? "text-newgreensecond" : "text-gray-400"} />
-                <div className="text-left">
-                  <span className={paymentMethod === "cod" ? "text-newgreensecond font-medium" : "text-gray-600"}>
-                    Cash on Delivery
-                  </span>
-                  <p className="text-xs text-gray-500">Pay when your order arrives</p>
-                </div>
-              </button>
+ 
             </div>
           </div>
         </div>
 
         {/* Right Section - Order Summary */}
-        <div className="w-full md:w-96">
+        <div className="w-full md:w-96 flex-shrink-0">
           <div className="bg-white rounded-lg shadow-sm p-6 md:sticky md:top-4">
             <h2 className="text-lg font-semibold text-black mb-4">Order Summary</h2>
 
-            {/* Items */}
+             {/* Items */}
             {cartItems.length > 0 ? (
-              <div className="space-y-4 mb-4">
+              <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-2 border-b pb-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between text-gray-600">
-                    <span>{item.name} × {item.quantity}</span>
-                    <span>₹{(item.price * item.quantity).toLocaleString()}</span>
+                  <div key={item.id} className="flex justify-between items-center text-sm text-gray-700">
+                    <span className="flex-1 truncate pr-2">{item.name} (×{item.quantity})</span>
+                    <span className="flex-shrink-0">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 mb-4">
-                <p className="text-gray-500">Your cart is empty</p>
+              <div className="text-center py-4 mb-4 border-b">
+                <p className="text-gray-500 text-sm">Your cart is empty</p>
               </div>
             )}
 
             {/* Promotion Code Section */}
-            <div className="border-t pt-4 pb-4">
-              <div className="flex items-center mb-2">
-                <Tag size={16} className="mr-2 text-newgreensecond" />
-                <h3 className="text-sm font-medium text-gray-700">Promotion Code</h3>
-              </div>
-              
-              {appliedPromo ? (
-                <div className="flex items-center justify-between bg-green-50 p-3 rounded-md">
-                  <div>
-                    <span className="font-medium text-green-700">{appliedPromo.code}</span>
-                    <p className="text-xs text-green-600">
-                      {appliedPromo.title}: {appliedPromo.discountType === 'PERCENTAGE' 
-                        ? `${appliedPromo.discountValue}% off` 
-                        : `₹${appliedPromo.discountValue} off`}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={handleRemovePromo}
-                    className="text-xs text-red-600 hover:text-red-800"
-                  >
-                    Remove
-                  </button>
+            <div className="pt-4 pb-4">
+                <div className="flex items-center mb-2">
+                    <Tag size={16} className="mr-2 text-newgreensecond" />
+                    <h3 className="text-sm font-medium text-gray-700">Have a Promotion Code?</h3>
                 </div>
-              ) : (
-                <div className="flex">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    placeholder="Enter promo code"
-                    className="flex-1 p-2 text-sm border rounded-l-md focus:outline-none focus:ring-1 focus:ring-newgreensecond"
-                  />
-                  <button
-                    onClick={handleApplyPromoCode}
-                    disabled={validatingPromo}
-                    className="bg-newgreensecond text-white px-3 py-2 rounded-r-md text-sm hover:bg-newgreen disabled:opacity-50"
-                  >
-                    {validatingPromo ? 'Applying...' : 'Apply'}
-                  </button>
-                </div>
-              )}
+                {appliedPromo ? (
+                     <div className="flex items-center justify-between bg-green-50 p-2 rounded-md">
+                        <div>
+                            <span className="font-medium text-green-700 text-sm">{appliedPromo.code} Applied!</span>
+                            <p className="text-xs text-green-600">
+                            {appliedPromo.discountType === 'PERCENTAGE'
+                                ? `${appliedPromo.discountValue}% Discount`
+                                : `₹${appliedPromo.discountValue} Discount`}
+                            </p>
+                        </div>
+                        <button onClick={handleRemovePromo} className="text-xs text-red-600 hover:text-red-800 font-medium">Remove</button>
+                    </div>
+                ) : (
+                    <div className="flex">
+                    <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code"
+                        className="flex-1 p-2 text-sm border rounded-l-md focus:outline-none focus:ring-1 focus:ring-newgreensecond"
+                    />
+                    <button
+                        onClick={handleApplyPromoCode}
+                        disabled={validatingPromo}
+                        className="bg-gray-600 text-white px-3 py-2 rounded-r-md text-sm hover:bg-gray-700 disabled:opacity-50"
+                    >
+                        {validatingPromo ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Apply'}
+                    </button>
+                    </div>
+                )}
             </div>
 
             {/* Price Breakdown */}
             <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal</span>
-                <span>₹{subtotal.toLocaleString()}</span>
+                <span>₹{subtotal.toLocaleString('en-IN')}</span>
               </div>
-              
               {discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
-                  <span>-₹{discount.toLocaleString()}</span>
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount ({appliedPromo?.code})</span>
+                  <span>- ₹{discount.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>Shipping</span>
-                <span>₹{shippingFee.toLocaleString()}</span>
+                <span>₹{shippingFee.toLocaleString('en-IN')}</span>
               </div>
-              
-              <div className="flex justify-between text-black font-medium pt-2 border-t mt-2">
+              <div className="flex justify-between text-black font-semibold pt-2 border-t mt-2 text-base">
                 <span>Total</span>
-                <span>₹{totalPrice.toLocaleString()}</span>
+                <span>₹{totalPrice.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
             {/* Place Order Button */}
-            <button 
+            <button
               onClick={handlePlaceOrder}
               disabled={isSubmitting || cartItems.length === 0 || status === "loading"}
-              className={`w-full py-4 text-white rounded-md font-medium mt-6 flex items-center justify-center gap-2
+              className={`w-full py-3 px-4 text-white rounded-md font-medium mt-6 flex items-center justify-center gap-2 transition-colors duration-200
                 ${isSubmitting || cartItems.length === 0 || status === "loading"
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-newgreensecond hover:bg-newgreen transition-colors'
+                  : 'bg-newgreensecond hover:bg-newgreen focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-newgreen'
                 }`}
             >
-              {isSubmitting ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-1"></span>
-                  Processing...
-                </>
+              {isSubmitting || creatingIntent || confirmingOrder ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
               ) : status === "loading" ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-1"></span>
-                  Checking session...
-                </>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Loading...</>
               ) : (
                 <>
                   <CheckCircle size={20} />
@@ -487,10 +534,10 @@ const CheckoutPage = () => {
       </div>
 
       {/* Login Modal */}
-      <SignupModal 
-        isOpen={isLoginOpen} 
+      <SignupModal
+        isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
-        callbackUrl={currentPath}
+        callbackUrl={currentPath} // Redirect back to checkout after login
       />
     </div>
   );

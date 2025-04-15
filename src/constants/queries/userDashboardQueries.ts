@@ -1,9 +1,39 @@
 // src/components/UserDashboard/graphql/queries.ts
 import { gql } from "@apollo/client";
 
-export const GET_ONE_USER_ORDERS = gql`
+import { TRACK_SHIPMENT } from './shipRocketQueries'; // Assuming you have this file
+
+export const GET_ONE_USER_SHIPROCKET_ORDERS = gql`
   query GetUserOrders($userId: ID!) {
     getUserOrders(userId: $userId) {
+      id
+      # orderNumber might not exist, use id if needed
+      totalAmount
+      createdAt
+      status
+      paymentStatus
+      trackingNumber # Shiprocket AWB often goes here
+      shippingMethod # Shiprocket Courier Name often goes here
+      estimatedDelivery
+      # Add shiprocket specific fields if they exist on backend and are needed
+      # shiprocketOrderId
+      # shiprocketShipmentId
+      # shiprocketAWBCode # Redundant if trackingNumber holds it
+      # shiprocketCourier # Redundant if shippingMethod holds it
+      products {
+        productId
+        name
+        quantity
+        price
+        image
+      }
+    }
+  }
+`;
+
+export const GET_ONE_USER_ORDERS = gql`
+ query GetUserOrders($userId: ID!) {
+  getUserOrders(userId: $userId) {
     id
     userId
     user {
@@ -21,6 +51,7 @@ export const GET_ONE_USER_ORDERS = gql`
         state
         country
         zip
+        phoneNumber
         isDefault
       }
       walletCoins
@@ -45,34 +76,10 @@ export const GET_ONE_USER_ORDERS = gql`
         estimatedDelivery
         notes
         createdAt
-      }
-      cancelledOrders {
-        id
-        userId
-        totalAmount
-        paymentMethod
-        paymentStatus
-        trackingNumber
-        shippingMethod
-        transactionId
-        status
-        estimatedDelivery
-        notes
-        createdAt
-      }
-      returnedOrders {
-        id
-        userId
-        totalAmount
-        paymentMethod
-        paymentStatus
-        trackingNumber
-        shippingMethod
-        transactionId
-        status
-        estimatedDelivery
-        notes
-        createdAt
+        shiprocketOrderId
+        shiprocketShipmentId
+        shiprocketAWBCode
+        shiprocketCourier
       }
       role
       isActive
@@ -99,6 +106,12 @@ export const GET_ONE_USER_ORDERS = gql`
           imageRoom
           imageLivingRoom
         }
+        searchKeywords
+        searchScore
+        slug
+        url
+        createdAt
+        updatedAt
       }
       cart {
         productId
@@ -137,6 +150,7 @@ export const GET_ONE_USER_ORDERS = gql`
       state
       country
       zip
+      phoneNumber
       isDefault
     }
     billingAddress {
@@ -147,7 +161,14 @@ export const GET_ONE_USER_ORDERS = gql`
       state
       country
       zip
+      phoneNumber
       isDefault
+    }
+    packageDetails {
+      weight
+      length
+      breadth
+      height
     }
     paymentMethod
     paymentStatus
@@ -162,8 +183,12 @@ export const GET_ONE_USER_ORDERS = gql`
       updatedAt
     }
     createdAt
+    shiprocketOrderId
+    shiprocketShipmentId
+    shiprocketAWBCode
+    shiprocketCourier
   }
-  }
+}
 `;
 
 export const GET_USER_PROFILE = gql`

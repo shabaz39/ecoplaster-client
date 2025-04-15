@@ -10,6 +10,7 @@ import Navbar from "@/components/HomepageComponents/Navbar";
 import { CartProvider } from "@/context/CartContext";
 import AuthProvider from "../providers";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ShiprocketProvider } from "@/context/ShiprocketContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,7 +42,9 @@ export default function RootLayout({
             <ApolloWrapper>
               <LoadingProvider>
               <WishlistProvider>
+              <ShiprocketProvider> {/* Add ShiprocketProvider here */}
                 {children}
+                </ShiprocketProvider>
                 </WishlistProvider>
               </LoadingProvider>
             </ApolloWrapper>
