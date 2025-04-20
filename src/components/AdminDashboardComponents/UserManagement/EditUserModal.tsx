@@ -18,16 +18,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSuccess 
     try {
       await updateUser({
         variables: {
-          id: editingUser.id,
-          updates: {
-            name: editingUser.name,
-            email: editingUser.email,
-            phoneNumber: editingUser.phoneNumber,
-            role: editingUser.role,
-            preferences: {
-              notifications: editingUser.preferences.notifications,
-              marketingEmails: editingUser.preferences.marketingEmails
-            }
+          updateUserId: editingUser.id,  // Change id to updateUserId
+          name: editingUser.name,
+          email: editingUser.email,
+          phoneNumber: editingUser.phoneNumber,
+          role: editingUser.role,  // Note: role is not in the mutation definition
+          preferences: {
+            notifications: editingUser.preferences.notifications,
+            marketingEmails: editingUser.preferences.marketingEmails
           }
         }
       });

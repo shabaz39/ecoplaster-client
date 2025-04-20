@@ -1,8 +1,21 @@
 // graphql/mutations.ts
 import { gql } from "@apollo/client";
 
+
+export const CREATE_USER_SIMPLE = gql`
+mutation CreateUser($name: String!, $email: String!, $phoneNumber: String, $password: String!) {
+  createUser(name: $name, email: $email, phoneNumber: $phoneNumber, password: $password) {
+    id
+    name
+    email
+    phoneNumber
+    role
+    isActive
+  }
+}
+`;
 export const CREATE_USER = gql`
-mutation CreateUser($name: String!, $email: String!, $phoneNumber: String!, $password: String!) {
+mutation CreateUser($name: String!, $email: String!, $phoneNumber: String, $password: String!) {
   createUser(name: $name, email: $email, phoneNumber: $phoneNumber, password: $password) {
     id
     name
@@ -158,10 +171,26 @@ mutation CreateUser($name: String!, $email: String!, $phoneNumber: String!, $pas
 }
 `;
 
+export const GET_ALL_USERS_SIMPLE = gql`
+  query GetAllUsers {
+    getAllUsers {
+      id
+      name
+      email
+      phoneNumber
+      role
+      isActive
+      emailVerified
+      phoneVerified
+      accountLocked
+      walletCoins
+    }
+  }
+`;
 
-export const UPDATE_USER = gql `
- mutation UpdateUser($updateUserId: ID!, $name: String, $email: String, $phoneNumber: String, $walletCoins: Float, $isActive: Boolean, $accountLocked: Boolean, $preferences: UserPreferencesInput) {
-  updateUser(id: $updateUserId, name: $name, email: $email, phoneNumber: $phoneNumber, walletCoins: $walletCoins, isActive: $isActive, accountLocked: $accountLocked, preferences: $preferences) {
+export const UPDATE_USER = gql`
+ mutation UpdateUser($id: ID!, $name: String, $email: String, $phoneNumber: String, $walletCoins: Float, $isActive: Boolean, $accountLocked: Boolean, $preferences: UserPreferencesInput) {
+  updateUser(id: $id, name: $name, email: $email, phoneNumber: $phoneNumber, walletCoins: $walletCoins, isActive: $isActive, accountLocked: $accountLocked, preferences: $preferences) {
     id
     name
     email
@@ -477,12 +506,11 @@ export const GET_ALL_USERS = gql`
 }
 `;
 
-
 export const UPDATE_WALLET = gql`
- mutation UpdateWallet($updateWalletId: ID!, $amount: Float!) {
-  updateWallet(id: $updateWalletId, amount: $amount) {
+ mutation UpdateWallet($id: ID!, $amount: Float!) {
+  updateWallet(id: $id, amount: $amount) {
     id
-    name
+     name
     email
     emailVerified
     phoneNumber

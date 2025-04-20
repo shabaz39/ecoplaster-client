@@ -206,6 +206,8 @@ const CartSidebar = () => {
             </div>
           </div>
 
+          
+
           {/* Checkout Button */}
           <button
             onClick={() => {

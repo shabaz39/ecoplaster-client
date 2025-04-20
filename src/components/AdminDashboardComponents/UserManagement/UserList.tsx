@@ -1,7 +1,7 @@
 // components/AdminDashboard/UserManagement/UserList.tsx
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_ALL_USERS, UPDATE_USER, UPDATE_WALLET } from '@/constants/mutations/userMutations';
+import { GET_ALL_USERS_SIMPLE, UPDATE_USER, UPDATE_WALLET } from '@/constants/mutations/userMutations';
 import LoadingSpinner from '../Common/LoadingSpinner';
 import UserForm from './UserForm';
 import EditUserModal from './EditUserModal';
@@ -11,7 +11,16 @@ const UserList = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const { data: usersData, loading: usersLoading, refetch } = useQuery(GET_ALL_USERS);
+ 
+  const { data: usersData, loading: usersLoading, error: usersError, refetch } = useQuery(GET_ALL_USERS_SIMPLE, {
+    onCompleted: (data) => {
+      console.log('Users data received:', data);
+    },
+    onError: (error) => {
+      console.error('Error fetching users:', error);
+    },
+    fetchPolicy: 'network-only' // Ensure fresh data
+  });
   const [updateUser] = useMutation(UPDATE_USER);
   const [updateWallet] = useMutation(UPDATE_WALLET);
 
@@ -19,10 +28,8 @@ const UserList = () => {
     try {
       await updateUser({
         variables: {
-          id,
-          updates: {
-            isActive: newStatus
-          }
+          updateUserId: id,
+          isActive: newStatus  // Direct property, not wrapped in 'updates'
         }
       });
       refetch();
@@ -45,7 +52,7 @@ const UserList = () => {
     try {
       await updateWallet({
         variables: {
-          id,
+          updateWalletId: id,  // Changed from id to updateWalletId
           amount: numAmount
         }
       });
@@ -55,7 +62,10 @@ const UserList = () => {
       alert('Failed to update wallet');
     }
   };
-
+  console.log('Current users data:', usersData);
+  if (usersLoading) return <LoadingSpinner />;
+  if (usersError) return <div className="p-4 text-red-600">Error loading users: {usersError.message}</div>;
+  if (!usersData?.getAllUsers?.length) return <div className="p-4">No users found. Add a new user to get started.</div>;
   if (usersLoading) return <LoadingSpinner />;
 
   return (

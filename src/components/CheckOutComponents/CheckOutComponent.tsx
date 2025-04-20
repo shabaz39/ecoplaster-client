@@ -92,6 +92,30 @@ const CheckoutPage = () => {
     fetchPolicy: 'network-only'
   });
 
+  useEffect(() => {
+    // Check if we have saved checkout data in localStorage
+    const savedCheckoutData = localStorage.getItem('tempCheckoutData');
+    if (savedCheckoutData) {
+      try {
+        const parsedData = JSON.parse(savedCheckoutData);
+        setShippingInfo(parsedData.shippingInfo);
+        // Optionally restore other state like selected payment method
+        if (parsedData.paymentMethod) {
+          setPaymentMethod(parsedData.paymentMethod);
+        }
+        if (parsedData.promoCode) {
+          setPromoCode(parsedData.promoCode);
+        }
+        // Clear saved data after restoring
+        localStorage.removeItem('tempCheckoutData');
+      } catch (e) {
+        console.error("Error parsing saved checkout data", e);
+        localStorage.removeItem('tempCheckoutData');
+      }
+    }
+  }, []);
+  
+
   // New mutations for two-step order creation
   const [createPaymentIntent, { loading: creatingIntent }] = useMutation(CREATE_PAYMENT_INTENT, {
     onError: (error) => {
@@ -129,7 +153,7 @@ const CheckoutPage = () => {
   };
 
   const discount = calculateDiscount();
-  const totalPrice = subtotal + shippingFee - discount;
+  const totalPrice = subtotal  - discount;
 
   const handleApplyPromoCode = () => {
     if (!promoCode.trim()) {
@@ -156,10 +180,16 @@ const CheckoutPage = () => {
 
     if (status !== "authenticated" || !session?.user) {
       console.log("User not authenticated. Showing login modal.");
+      // Save checkout data before redirecting
+      localStorage.setItem('tempCheckoutData', JSON.stringify({
+        shippingInfo,
+        paymentMethod,
+        promoCode: promoCode,
+        appliedPromo: appliedPromo
+      }));
       setIsLoginOpen(true);
       return;
     }
-
     // --- Validation ---
     const requiredFields: (keyof ShippingInfoState)[] = ["name", "address", "city", "state", "zip", "phone"];
     const missingFields = requiredFields.filter(field => !shippingInfo[field]?.trim());
@@ -500,7 +530,7 @@ if (!userId) {
               )}
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Shipping</span>
-                <span>₹{shippingFee.toLocaleString('en-IN')}</span>
+                <span>Free</span>
               </div>
               <div className="flex justify-between text-black font-semibold pt-2 border-t mt-2 text-base">
                 <span>Total</span>

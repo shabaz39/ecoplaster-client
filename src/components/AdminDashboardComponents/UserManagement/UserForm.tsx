@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { CREATE_USER } from '@/constants/mutations/userMutations';
+import { CREATE_USER_SIMPLE } from '@/constants/mutations/userMutations';
 
 interface UserFormProps {
   onClose: () => void;
@@ -16,7 +16,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose, onSuccess }) => {
   });
   const [error, setError] = useState<string | null>(null);
 
-  const [createUser, { loading: createUserLoading }] = useMutation(CREATE_USER, {
+  const [createUser, { loading: createUserLoading }] = useMutation(CREATE_USER_SIMPLE, {
     onCompleted: () => {
       onSuccess();
       onClose();
@@ -40,21 +40,25 @@ const UserForm: React.FC<UserFormProps> = ({ onClose, onSuccess }) => {
       setError('Valid email is required');
       return;
     }
-    if (!newUser.phoneNumber.trim()) {
-      setError('Phone number is required');
-      return;
-    }
-    if (newUser.password.length < 6) {
+    if (!newUser.password.trim() || newUser.password.length < 6) {
       setError('Password must be at least 6 characters long');
       return;
     }
 
     try {
+      // Log what we're sending to help debug
+      console.log('Sending user data:', {
+        name: newUser.name.trim(),
+        email: newUser.email.trim(),
+        phoneNumber: newUser.phoneNumber.trim() || null, // Send null if empty
+        password: newUser.password
+      });
+      
       await createUser({
         variables: {
           name: newUser.name.trim(),
           email: newUser.email.trim(),
-          phoneNumber: newUser.phoneNumber.trim(),
+          phoneNumber: newUser.phoneNumber.trim() || undefined, // Use undefined, not null
           password: newUser.password
         }
       });
@@ -64,7 +68,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="bg-cream p-6 rounded-lg shadow-sm mb-6">
+    <div className="bg-cream p-6 rounded-lg shadow-sm mb-6 text-black">
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           {error}
@@ -94,13 +98,12 @@ const UserForm: React.FC<UserFormProps> = ({ onClose, onSuccess }) => {
           />
         </div>
         <div>
-          <label className="block text-productNameColor font-medium mb-1">Phone Number</label>
+          <label className="block text-productNameColor font-medium mb-1">Phone Number (optional)</label>
           <input
             type="tel"
             value={newUser.phoneNumber}
             onChange={(e) => setNewUser({...newUser, phoneNumber: e.target.value})}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-greenComponent"
-            required
             placeholder="Enter phone number"
           />
         </div>

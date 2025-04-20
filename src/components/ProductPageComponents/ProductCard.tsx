@@ -16,9 +16,11 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage }) => {
-  const { addToCart, toggleCart, removeFromCart, cartItems } = useCart();
+  const { addToCart, toggleCart, removeFromCart, cartItems, isCartOpen } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist, showLoginPrompt } = useWishlist();
   const [isWishlistAnimating, setIsWishlistAnimating] = useState(false);
+  const [CheckoutMode, setCheckoutMode] = useState(false);
+
   const { status } = useSession();
   
   const increasedMRP = Math.ceil(product.price.mrp * 1.5);
@@ -29,6 +31,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
   const productInWishlist = isInWishlist(product.id);
 
   const handleBuyNow = (event: React.MouseEvent) => {
+
+        // Open cart sidebar
+  toggleCart();
     event.stopPropagation(); // Prevent navigation
     addToCart({
       id: product.id,
@@ -37,7 +42,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
       originalPrice: product.price.mrp,
       quantity: 1,
     });
-    toggleCart(); // Open sidebar
+ 
+
+  
+ 
   };
 
   const handleAddToCart = (event: React.MouseEvent) => {
@@ -48,8 +56,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, fallbackImage
       price: product.price.offerPrice,
       originalPrice: product.price.mrp,
       quantity: 1,
-    });
-    toggleCart(); // Open sidebar
+    },true);
+ 
+  // If sidebar is already open, close and reopen it
+  if (isCartOpen) {
+    toggleCart(); // Close it
+    setTimeout(() => toggleCart(), 10); // Reopen it
+  } else {
+    toggleCart(); // Just open it if it's closed
+  }
   };
 
   const handleWishlistToggle = async (event: React.MouseEvent) => {

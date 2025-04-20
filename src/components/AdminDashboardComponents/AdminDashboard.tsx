@@ -23,6 +23,8 @@ import {
 } from '@/constants/queries/blogQueries';
 import { GET_ALL_CONTACTS } from '@/constants/queries/allGETrequests';
 import LoadingSpinner from './Common/LoadingSpinner';
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface TabType {
   id: string;
@@ -38,6 +40,8 @@ const AdminDashboard: React.FC = () => {
   // Queries
   const { data: blogsData, loading: blogsLoading, refetch: refetchBlogs } = useQuery(GET_ALL_BLOGS);
   const { data: contactsData, loading: contactsLoading } = useQuery(GET_ALL_CONTACTS);
+
+  const router = useRouter();
 
   // Blog mutations
   const [createBlog] = useMutation(CREATE_BLOG);
@@ -56,6 +60,17 @@ const AdminDashboard: React.FC = () => {
     { id: 'blogs', label: 'Blogs', icon: '📝' },
     { id: 'contacts', label: 'Contact Messages', icon: '✉️' }
   ];
+
+  // Add this function to handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirect: false });
+      // Redirect to home page after sign out
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const handleCreateBlog = async (formData: BlogFormData, files: File[]) => {
     try {
@@ -269,15 +284,26 @@ const AdminDashboard: React.FC = () => {
       <section className="px-6 py-8 border-t border-cream">
         <h3 className="text-lg font-semibold text-productNameColor">Admin Account</h3>
         <ul className="mt-4 space-y-2">
-          {["Manage Users", "Settings", "Sign Out"].map((item, index) => (
-            <li 
-              key={index} 
-              className="text-newgreensecond hover:text-greenComponent cursor-pointer transition-colors flex items-center gap-2"
-            >
-              <span>{item === "Sign Out" ? "🚪" : item === "Settings" ? "⚙️" : "👥"}</span>
-              {item}
-            </li>
-          ))}
+          <li 
+            onClick={() => setActiveTab('users')} 
+            className="text-newgreensecond hover:text-greenComponent cursor-pointer transition-colors flex items-center gap-2"
+          >
+            <span>👥</span>
+            Manage Users
+          </li>
+          <li 
+            className="text-newgreensecond hover:text-greenComponent cursor-pointer transition-colors flex items-center gap-2"
+          >
+            <span>⚙️</span>
+            Settings
+          </li>
+          <li 
+            onClick={handleSignOut}
+            className="text-newgreensecond hover:text-greenComponent cursor-pointer transition-colors flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Sign Out
+          </li>
         </ul>
       </section>
     </div>
