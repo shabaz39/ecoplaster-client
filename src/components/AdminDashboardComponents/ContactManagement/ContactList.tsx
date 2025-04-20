@@ -110,13 +110,15 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, loading }) => {
 
   // Helper function to format dates safely
 // Helper function to format date with error handling
-const formatDate = (dateString: string | number) => {
+const formatDate = (dateString: string | number | Date): string => {
   try {
-    // Handle different types of date inputs
     let date: Date;
     
-    if (typeof dateString === 'number' || !isNaN(Number(dateString))) {
-      // If it's a number (timestamp) or numeric string
+    if (dateString instanceof Date) {
+      // If it's already a Date object, use it directly
+      date = dateString;
+    } else if (!isNaN(Number(dateString)) && String(Number(dateString)).length === 13) {
+      // Handle timestamp (milliseconds since Epoch)
       const timestamp = typeof dateString === 'number' ? dateString : Number(dateString);
       date = new Date(timestamp);
     } else {

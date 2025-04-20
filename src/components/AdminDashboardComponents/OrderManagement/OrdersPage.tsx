@@ -142,38 +142,41 @@ const getPaymentStatusBadgeClass = (status: string) => {
 };
 
 // Helper function to format date with error handling
-const formatDate = (dateString: string | number) => {
-    try {
-      // Handle different types of date inputs
-      let date: Date;
-      
-      if (typeof dateString === 'number' || !isNaN(Number(dateString))) {
-        // If it's a number (timestamp) or numeric string
-        const timestamp = typeof dateString === 'number' ? dateString : Number(dateString);
-        date = new Date(timestamp);
-      } else {
-        // Otherwise treat as ISO date string or other date format
-        date = new Date(dateString);
-      }
-      
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        console.warn('Invalid date value:', dateString);
-        return 'Invalid date';
-      }
-      
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error, 'Value:', dateString);
+
+const formatDate = (dateString: string | number | Date): string => {
+  try {
+    let date: Date;
+    
+    if (dateString instanceof Date) {
+      // If it's already a Date object, use it directly
+      date = dateString;
+    } else if (!isNaN(Number(dateString)) && String(Number(dateString)).length === 13) {
+      // Handle timestamp (milliseconds since Epoch)
+      const timestamp = typeof dateString === 'number' ? dateString : Number(dateString);
+      date = new Date(timestamp);
+    } else {
+      // Otherwise treat as ISO date string or other date format
+      date = new Date(dateString);
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date value:', dateString);
       return 'Invalid date';
     }
-  };
+    
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error, 'Value:', dateString);
+    return 'Invalid date';
+  }
+};
 
   // Now, add a utility function to extract the date part from timestamps
 const getDateOnly = (dateValue: string | number | Date): string => {

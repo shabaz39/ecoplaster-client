@@ -37,27 +37,40 @@ const steps = [
   { name: 'Delivered', icon: CheckCircle }
 ];
 
-// Format date helper (consider moving to types.ts if used elsewhere)
-const formatDate = (dateString?: string | null) => {
-  if (!dateString) return 'N/A'; // Return N/A if no date
-
+const formatDate = (dateString: string | number | Date): string => {
   try {
-    const date = new Date(dateString);
+    let date: Date;
+    
+    if (dateString instanceof Date) {
+      // If it's already a Date object, use it directly
+      date = dateString;
+    } else if (!isNaN(Number(dateString)) && String(Number(dateString)).length === 13) {
+      // Handle timestamp (milliseconds since Epoch)
+      const timestamp = typeof dateString === 'number' ? dateString : Number(dateString);
+      date = new Date(timestamp);
+    } else {
+      // Otherwise treat as ISO date string or other date format
+      date = new Date(dateString);
+    }
+    
     // Check if date is valid
     if (isNaN(date.getTime())) {
-       return 'N/A';
+      console.warn('Invalid date value:', dateString);
+      return 'Invalid date';
     }
-    return date.toLocaleDateString('en-IN', { // Use Indian locale
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
-  } catch (e) {
-    console.error("Error formatting date:", e);
-    return 'Invalid Date'; // Return specific error string
+  } catch (error) {
+    console.error('Error formatting date:', error, 'Value:', dateString);
+    return 'Invalid date';
   }
 };
-
 const OrderTracker: React.FC<OrderTrackingProps> = ({
   status,
   trackingNumber,
