@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import PaymentPage from "../../components/Payment,Returns&RefundsComponent/Payment/PaymentPageComponents";
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -11,7 +11,15 @@ import {
   GET_PAYMENT_INTENT
 } from "@/constants/queries/paymentIntentQueries";
 
-const PaymentRoute = () => {
+// Loading component for suspense fallback
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-newgreensecond"></div>
+  </div>
+);
+
+// Component that uses useSearchParams
+const PaymentContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { status } = useSession();
@@ -21,7 +29,8 @@ const PaymentRoute = () => {
   const orderId = searchParams.get("orderId");
 
   const { data: intentData } = useQuery(GET_PAYMENT_INTENT, {
-    variables: { id: intentId }
+    variables: { id: intentId },
+    skip: !intentId
   });
   
   useEffect(() => {
@@ -47,11 +56,7 @@ const PaymentRoute = () => {
   
   // Show loading state while checking session
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-newgreensecond"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
   
   // Show "missing payment info" UI if no intentId/orderId is found
@@ -81,10 +86,18 @@ const PaymentRoute = () => {
         <PaymentPage intentId={intentId} />
       ) : (
         // For backward compatibility - pass the orderId but use type assertion
-        // This is a temporary solution until you fully migrate to intentId
         <PaymentPage intentId={orderId as string} />
       )}
     </ProtectedRoute>
+  );
+};
+
+// Main component with Suspense boundary
+const PaymentRoute = () => {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <PaymentContent />
+    </Suspense>
   );
 };
 
