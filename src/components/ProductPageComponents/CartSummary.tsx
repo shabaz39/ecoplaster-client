@@ -1,9 +1,9 @@
 import React from 'react';
-import { Product } from '../../types/product.types';
+import { IProduct } from '../../types/product.types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, ShoppingBag, Plus, Minus } from 'lucide-react';
 
-interface CartItem extends Product {
+interface CartItem extends IProduct {
   quantity: number;
 }
 
