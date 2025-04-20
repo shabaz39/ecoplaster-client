@@ -4,7 +4,7 @@ import fetch from "cross-fetch"; //  for server-side fetching
 import { safeId } from '../utils/safeId'; // Import the safeId utility
 import { setContext } from '@apollo/client/link/context';
 
-const API_URL = "http://localhost:4000" 
+const API_URL = "https://ecoplaster-server-1.onrender.com" 
 
 // Create the auth link to add the token to requests
 const authLink = setContext(async (_, { headers }) => {
