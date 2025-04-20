@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { FiltersType } from '../../types/product.types';
+import { ProductFilterInput } from '../../types/product.types';
 import PriceRangeSlider from './PriceRangeSlider';
 
 interface FiltersProps {
-  selectedFilters: FiltersType;
-  onFilterChange: (filters: FiltersType) => void;
+  selectedFilters: ProductFilterInput;
+  onFilterChange: (filters: ProductFilterInput) => void;
 }
 
 export const Filters: React.FC<FiltersProps> = ({ selectedFilters, onFilterChange }) => {
@@ -63,7 +63,7 @@ export const Filters: React.FC<FiltersProps> = ({ selectedFilters, onFilterChang
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
 
-  const handleFilterChange = (key: keyof FiltersType, value: string) => {
+  const handleFilterChange = (key: keyof ProductFilterInput, value: string) => {
     const currentValues = selectedFilters[key] as string[] || [];
     const newValues = currentValues.includes(value )
       ? currentValues.filter(item => item !== value)
