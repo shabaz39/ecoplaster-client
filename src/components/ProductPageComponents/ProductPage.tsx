@@ -7,7 +7,7 @@ import { SortOptions } from './SortOptions';
 import { ProductCard } from './ProductCard';
 import LoadingOverlay from '../LoadingOverlay';
 import { FILTER_PRODUCTS } from '../../constants/queries/productQueries';
-import type { Product, FiltersType } from '../../types/product.types';
+import type { IProduct, ProductFilterInput } from '../../types/product.types';
 import { useCart } from '@/context/CartContext';
 import CartSidebar from '../CheckOutComponents/CartSidebar';
 
@@ -21,8 +21,8 @@ const fallbackImages = [
 
 const AllProductsPage: React.FC = () => {
   const [sortOption, setSortOption] = useState("Popularity");
-  const [filters, setFilters] = useState<FiltersType>({});
-  const [sortedProducts, setSortedProducts] = useState<Product[]>([]);
+  const [filters, setFilters] = useState<ProductFilterInput>({});
+  const [sortedProducts, setSortedProducts] = useState<IProduct[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const { isCartOpen } = useCart(); // Ensure cart visibility
 
@@ -66,7 +66,7 @@ const AllProductsPage: React.FC = () => {
     }
   }, [data, sortOption]);
 
-  const handleFilterChange = (newFilters: FiltersType) => {
+  const handleFilterChange = (newFilters: ProductFilterInput) => {
     setFilters(newFilters);
     refetch({
       color: newFilters.color?.length ? newFilters.color : null,
