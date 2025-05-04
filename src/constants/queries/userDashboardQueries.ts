@@ -105,6 +105,7 @@ export const GET_ONE_USER_ORDERS = gql`
           imageBedroom
           imageRoom
           imageLivingRoom
+          imageSecondLivingRoom
         }
         searchKeywords
         searchScore

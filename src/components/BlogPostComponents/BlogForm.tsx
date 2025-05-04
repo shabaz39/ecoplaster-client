@@ -18,7 +18,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   const [formData, setFormData] = useState<BlogFormData>(initialData || {
     title: '',
     body: '',
-    metaTags: '',
+    metaTags: initialData?.metaTags?.join(', ') || '', // Join array for editing
     author: ''
   });
   const [files, setFiles] = useState<File[]>([]);
@@ -50,16 +50,32 @@ export const BlogForm: React.FC<BlogFormProps> = ({
 
   console.log("Files before submitting:", files);
 
-  if (!files.length) {
-    alert('Please select at least one image');
+  if (!files.length && !initialData) { // Don't require files on update if none provided
+    alert('Please select at least one image when creating a new blog');
     return;
   }
 
-  try {
-    await onSubmit(formData, files);
-  } catch (error) {
-    console.error('Form submission error:', error);
-  }
+   // Convert metaTags string back to array before submitting
+   const metaTagsArray = formData.metaTags
+   .split(',')
+   .map(tag => tag.trim())
+   .filter(tag => tag !== '');
+
+ // Prepare the final data structure matching BlogInput
+ const finalInputData = {
+     title: formData.title,
+     body: formData.body,
+     author: formData.author,
+     metaTags: metaTagsArray, // Send as array
+     // Add other fields from BlogInput if needed (e.g., published)
+ };
+
+ try {
+  // Pass the correctly structured input and files
+  await onSubmit(finalInputData, files);
+} catch (error) {
+  console.error('Form submission error:', error);
+}
 };
 
 

@@ -27,6 +27,8 @@ const SEARCH_PRODUCTS = gql`
       imageBedroom
       imageRoom
       imageLivingRoom
+      imageSecondLivingRoom
+
     }
   }
 }
@@ -53,6 +55,8 @@ const GET_TOP_SUGGESTIONS = gql`
       imageBedroom
       imageRoom
       imageLivingRoom
+      imageSecondLivingRoom
+
     }
   }
 }

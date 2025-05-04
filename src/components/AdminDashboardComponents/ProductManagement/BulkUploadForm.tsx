@@ -72,7 +72,10 @@ const BulkUploadForm: React.FC<BulkUploadFormProps> = ({ onSubmit, onCancel }) =
             imageWall: (row.imageWall || '').trim(),
             imageBedroom: (row.imageBedroom || '').trim(),
             imageRoom: (row.imageRoom || '').trim(),
-            imageLivingRoom: (row.imageLivingRoom || '').trim()
+            imageLivingRoom: (row.imageLivingRoom || '').trim(),
+            imageSecondLivingRoom: (row.imageLivingRoom || '').trim()
+
+
           }
         };
 
@@ -115,7 +118,7 @@ const BulkUploadForm: React.FC<BulkUploadFormProps> = ({ onSubmit, onCancel }) =
     const fields = [
       'name', 'code', 'color', 'fabric', 'mrp', 'offerPrice', 
       'series', 'finish', 'imageMain', 'imageArtTable', 'imageWall', 
-      'imageBedroom', 'imageRoom', 'imageLivingRoom'
+      'imageBedroom', 'imageRoom', 'imageLivingRoom', 'imageSecondLivingRoom'
     ];
     
     const sample = {

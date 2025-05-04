@@ -49,7 +49,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, onCanc
       imageWall: '',
       imageBedroom: '',
       imageRoom: '',
-      imageLivingRoom: ''
+      imageLivingRoom: '',
+      imageSecondLivingRoom: ''
+
     }
   });
   
@@ -93,6 +95,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, onCanc
             imageBedroom: initialData.images?.imageBedroom || '',
             imageRoom: initialData.images?.imageRoom || '',
             imageLivingRoom: initialData.images?.imageLivingRoom || '',
+            imageSecondLivingRoom: initialData.images?.imageLivingRoom || '',
+
           }
         });
       } catch (error) {
@@ -562,6 +566,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, onCanc
                 name="images.imageLivingRoom"
                 id="images.imageLivingRoom"
                 value={formData.images.imageLivingRoom}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="images.imageSecondLivingRoom" className="block text-xs font-medium text-gray-700">
+                Living Room Image URL
+              </label>
+              <input
+                type="text"
+                name="images.imageSecondLivingRoom"
+                id="images.imageSecondLivingRoom"
+                value={formData.images.imageSecondLivingRoom}
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-sm"
               />

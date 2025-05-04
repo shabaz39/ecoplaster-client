@@ -183,6 +183,7 @@ query GetOrder($id: ID!) {
           imageBedroom
           imageRoom
           imageLivingRoom
+          imageSecondLivingRoom
         }
       }
       cart {

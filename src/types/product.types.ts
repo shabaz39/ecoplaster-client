@@ -11,6 +11,8 @@ export interface IProductImages {
   imageBedroom: string;
   imageRoom: string;
   imageLivingRoom: string;
+  imageSecondLivingRoom: string;
+
 }
 
 export interface IProduct {
@@ -50,6 +52,8 @@ export interface ProductInput {
     imageBedroom: string;
     imageRoom: string;
     imageLivingRoom: string;
+    imageSecondLivingRoom: string;
+
   };
 }
 
@@ -62,6 +66,8 @@ export interface ProductImageUpdateInput {
     imageBedroom: string;
     imageRoom: string;
     imageLivingRoom: string;
+    imageSecondLivingRoom: string;
+
   };
 }
 

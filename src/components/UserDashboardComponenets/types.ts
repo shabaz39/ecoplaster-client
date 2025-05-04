@@ -99,6 +99,8 @@ export interface SessionUser {
     imageBedroom: string;
     imageRoom: string;
     imageLivingRoom: string;
+    imageSecondLivingRoom: string;
+
   }
 
   export interface AddressInput {

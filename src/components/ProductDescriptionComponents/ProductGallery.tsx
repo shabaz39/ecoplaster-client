@@ -11,6 +11,8 @@ interface ProductImages {
   imageBedroom: string;
   imageRoom: string;
   imageLivingRoom: string;
+  imageSecondLivingRoom: string;
+
 }
 
 interface ProductGalleryProps {

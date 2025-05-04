@@ -20,6 +20,7 @@ export const GET_PRODUCTS = gql`
       imageBedroom
       imageRoom
       imageLivingRoom
+      imageSecondLivingRoom
       }
     }
   }

@@ -39,6 +39,8 @@ const ProductDescription: React.FC<ProductProps> = ({ productId }) => {
     imageBedroom: product.images?.imageBedroom || "",
     imageRoom: product.images?.imageRoom || "",
     imageLivingRoom: product.images?.imageLivingRoom || "",
+    imageSecondLivingRoom: product.images?.imageLivingRoom || "",
+
   };
 
   return (

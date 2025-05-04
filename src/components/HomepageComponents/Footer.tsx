@@ -111,9 +111,8 @@ const Footer: React.FC = () => {
       <h3 className="font-bold mb-4 text-gray-800">Resources</h3> {/* Changed heading color */}
       <ul className="space-y-2 text-sm">
         <li><Link href="/blogs" className="hover:text-newgreen">Blog & Inspiration</Link></li>
-        <li><Link href="/installation-guide" className="hover:text-newgreen">Installation Guide</Link></li>
-        <li><Link href="/maintenance-tips" className="hover:text-newgreen">Care & Maintenance</Link></li>
-        {/* <li><Link href="/visualizer" className="hover:text-newgreen">Room Visualizer</Link></li>
+        <li><Link href="/installationGuide" className="hover:text-newgreen">Installation Guide</Link></li>
+         {/* <li><Link href="/visualizer" className="hover:text-newgreen">Room Visualizer</Link></li>
         <li><Link href="/project-calculator" className="hover:text-newgreen">Project Calculator</Link></li> */}
         <li><Link href="/faqs" className="hover:text-newgreen">FAQs</Link></li>
       </ul>
@@ -124,7 +123,7 @@ const Footer: React.FC = () => {
        <h3 className="font-bold mb-4 text-gray-800">Connect</h3> {/* Changed heading color */}
        <ul className="space-y-2 text-sm">
           <li><Link href="/stores" className="hover:text-newgreen">Find a Store/Dealer</Link></li>
-          <li><Link href="/dealer-application" className="hover:text-newgreen">Become a Dealer</Link></li>
+          <li><Link href="/" className="hover:text-newgreen">Become a Dealer</Link></li>
           <li><Link href="/bulkorders" className="hover:text-newgreen">Bulk Orders</Link></li>
           <li><Link href="/contactus" className="hover:text-newgreen">Contact Support</Link></li>
            {/* Add social links again here if desired, or rely on the floating ones */}

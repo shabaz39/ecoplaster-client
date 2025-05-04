@@ -8,14 +8,14 @@ import { useRouter } from "next/navigation"; // ✅ Import router
 import { GET_SERIES_PRODUCTS } from "../../constants/queries/productQueries";
 
 const categories = [
-  { name: "Silk", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901747/Product_01_r3m091.webp" },
-  { name: "Gold", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901760/Product_01_vexvf6.webp" },
-  { name: "Chips", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901756/Product_01_yzbadi.webp" },
-  { name: "Dual", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901771/Product_01_nyoml3.webp" },
-  { name: "Cotton", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901769/Product_01_awbpun.webp" },
-  { name: "Cotton & Silk", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901765/Product_01_arv6ve.webp" },
-  { name: "Glitter", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901749/Product_01_pkv1zc.webp" },
-  { name: "Multi-Color", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901764/Product_01_r2znth.webp" }
+  { name: "Silk", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157056/ecoplaster-revised-images/EP_416/mxdsxluzecjq1fidk3r0.webp" },
+  { name: "Gold", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198412/ecoplaster-revised-images/EP_818/x95xo8we18reudast1yu.webp" },
+  { name: "Chips", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198466/ecoplaster-revised-images/EP_381/lltwftxklauy89bdk1xs.webp" },
+  { name: "Dual", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198495/ecoplaster-revised-images/EP_231/qxtq4lpeeidteijquvuf.webp" },
+  { name: "Cotton", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901757/Product_01_kre6je.webp" },
+  { name: "Cotton & Silk", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745154978/ecoplaster-revised-images/CS7/jvoxxlih7acktejlbjwq.webp" },
+  { name: "Glitter", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157106/ecoplaster-revised-images/G_1/uxdscr56cuivcu4sjvba.webp" },
+  { name: "Multi-Color", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157022/ecoplaster-revised-images/MC_9/eosllbtbahgvqu3ztd8f.webp" }
 ];
 
 const fallbackImages = [

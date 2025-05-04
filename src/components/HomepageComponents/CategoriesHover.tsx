@@ -8,12 +8,20 @@ const categories = [
   {
     name: "Features",
     links: [
-      "Eco-Friendly & Sustainable Materials",
-      "Advanced Noise & Thermal Insulation",
-      "Ultra-Durable & Long-Lasting Finish",
-      "Seamless, Crack-Free Surface",
-      "Customizable Colors & Textures",
+      { name: "Eco-Friendly & Sustainable Materials", href: "/features" },
+      { name: "Kids & Pet Friendly", href: "/features" },
+      { name: "Odorless", href: "/features" },
+      { name: "Breathable Walls", href: "/features" },
+      { name: "High Elasticity", href: "/features" },
+      { name: "Easy to Apply", href: "/features" },
+      { name: "Fire Retardant", href: "/features" },
+      { name: "Sound Insulation", href: "/features" },
+      { name: "Heat Insulation", href: "/features" },
+      { name: "Hypoallergenic", href: "/features" },
+      { name: "Moisture Resistant", href: "/features" },
+      { name: "Anti-Static", href: "/features" }
     ],
+    route: "/features",
   },
   {
     name: "Products",
@@ -27,17 +35,19 @@ const categories = [
       { name: "Glitter series", href: "/allproducts" },
       { name: "Multi-Color series", href: "/allproducts" },
     ],
+    route: "/allproducts",
+
   },
   {
     name: "About Us",
     links: [
       {
         name: "Office Address: 2nd Floor, police station, 14-40/A, Dhanalaxmi Nagar, beside MR Palli, Vk Puram, Tirupati, Andhra Pradesh 517501",
-        href: "#",
+        href: "/aboutus",
       },
       {
         name: "Mission: Revolutionizing wall finishes with sustainable & innovative solutions.",
-        href: "#",
+        href: "/aboutus",
       },
     ],
     route: "/aboutus", // Navigation route
@@ -45,27 +55,28 @@ const categories = [
   {
     name: "FAQ",
     links: [
-      "How long does EcoPlaster last?",
-      "Is EcoPlaster safe for indoor use?",
-      "What surfaces can EcoPlaster be applied to?",
-      "Does it require special maintenance?",
+      { name: "How long does EcoPlaster last?", href: "/faqs" },
+      { name: "Is EcoPlaster safe for indoor use?", href: "/faqs" },
+      { name: "What surfaces can EcoPlaster be applied to?", href: "/faqs" },
+      { name: "Does it require special maintenance?", href: "/faqs" },
     ],
     route: "/faqs",
   },
   {
     name: "Dealers",
     links: [
-      "Tirupati, Andhra Pradesh",
-      "Kakinada, Andhra Pradesh",
-      "Bangalore, Karnataka",
-      "Koduvally, Calicut",
-      "Deoli, Rajasthan",
-      "Bhubaneshwar, Odisha",
-      "Ambala, Haryana",
-      "Hisar, Haryana",
-      "Anantnag, Jammu and Kashmir",
-      "Srinagar, Jammu and Kashmir",
+      { name: "Tirupati, Andhra Pradesh", href: "/stores" },
+      { name: "Kakinada, Andhra Pradesh", href: "/stores" },
+      { name: "Bangalore, Karnataka", href: "/stores" },
+      { name: "Koduvally, Calicut", href: "/stores" },
+      { name: "Deoli, Rajasthan", href: "/stores" },
+      { name: "Bhubaneshwar, Odisha", href: "/stores" },
+      { name: "Ambala, Haryana", href: "/stores" },
+      { name: "Hisar, Haryana", href: "/stores" },
+      { name: "Anantnag, Jammu and Kashmir", href: "/stores" },
+      { name: "Srinagar, Jammu and Kashmir", href: "/stores" },
     ],
+    route: "/stores",
   },
 ];
 

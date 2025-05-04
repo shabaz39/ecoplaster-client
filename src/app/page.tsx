@@ -15,6 +15,7 @@ import AwardsSection from "@/components/HomepageComponents/Awards";
 import TestimonialsSection from "@/components/HomepageComponents/VideoTestimonials";
 import SEOSection from "@/components/HomepageComponents/SeoSection";
 import Footer from "@/components/HomepageComponents/Footer";
+import HomepageCalculatorSection from "@/components/HomepageComponents/QuickProjectSection";
 
 const Home: React.FC = () => {
   return (
@@ -24,6 +25,7 @@ const Home: React.FC = () => {
       <Hero />
       <WhyEcoPlaster/>
       <CategoriesSection/>
+      <HomepageCalculatorSection/>
       <StoresSection/>
       <ShopByRooms/>
       <BannerWithModal/>

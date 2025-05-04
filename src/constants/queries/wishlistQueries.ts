@@ -40,6 +40,7 @@ export const GET_USER_WISHLIST = gql`
       imageBedroom
       imageRoom
       imageLivingRoom
+      imageSecondLivingRoom
     }
   }
   }
