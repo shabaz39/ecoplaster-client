@@ -1,19 +1,19 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, TrendingUp, History, ArrowRight, Star } from "lucide-react";
+import { Search, X, TrendingUp, Star, Hash, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import debounce from "lodash/debounce";
 
+// Keep the original search query
 const SEARCH_PRODUCTS = gql`
  query SearchProducts($query: String!, $limit: Int) {
   searchProducts(query: $query, limit: $limit) {
     name
     series
     price {
-      mrp
-      offerPrice
+       offerPrice
     }
     id
     finish
@@ -28,7 +28,6 @@ const SEARCH_PRODUCTS = gql`
       imageRoom
       imageLivingRoom
       imageSecondLivingRoom
-
     }
   }
 }
@@ -43,8 +42,7 @@ const GET_TOP_SUGGESTIONS = gql`
     color
     fabric
     price {
-      mrp
-      offerPrice
+       offerPrice
     }
     series
     finish
@@ -56,7 +54,6 @@ const GET_TOP_SUGGESTIONS = gql`
       imageRoom
       imageLivingRoom
       imageSecondLivingRoom
-
     }
   }
 }
@@ -83,6 +80,7 @@ const GET_TRENDING_SEARCHES = gql`
       imageBedroom
       imageRoom
       imageLivingRoom
+      imageSecondLivingRoom
     }
   }
 }
@@ -93,10 +91,27 @@ interface SearchBarProps {
   onClose?: () => void;
 }
 
+// Create a sanitized product type to handle missing fields
+interface SafeProduct {
+  id: string;
+  name: string;
+  code: string;
+  images: {
+    imageMain?: string;
+    [key: string]: string | undefined;
+  };
+  price: {
+    mrp: number;
+    offerPrice: number;
+  };
+}
+
 const SearchBar: React.FC<SearchBarProps> = ({ isMobile = false, onClose }) => {
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchTips, setShowSearchTips] = useState(false);
+  const [isCodeSearch, setIsCodeSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -107,36 +122,81 @@ const SearchBar: React.FC<SearchBarProps> = ({ isMobile = false, onClose }) => {
     </div>
   );
 
+  // Use skip to prevent automatic fetching of search results
   const { loading: searchLoading, refetch } = useQuery(SEARCH_PRODUCTS, {
     skip: true,
     variables: { query: "", limit: 5 },
+    onError: (error) => {
+      console.error("Search error:", error);
+    }
   });
 
- // Inside the SearchBar component, add these logs:
- const { data: topSuggestionsData, loading: topSuggestionsLoading } = useQuery(GET_TOP_SUGGESTIONS, {
-  variables: { limit: 5 },
-  onCompleted: (data) => console.log("Top suggestions data:", data),
-  onError: (error) => console.error("Top suggestions error:", error)
-});
+  const { data: topSuggestionsData, loading: topSuggestionsLoading } = useQuery(GET_TOP_SUGGESTIONS, {
+    variables: { limit: 5 },
+    onError: (error) => console.error("Top suggestions error:", error)
+  });
 
-const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_SEARCHES, {
-  variables: { limit: 5 },
-  onCompleted: (data) => console.log("Trending data:", data),
-  onError: (error) => console.error("Trending error:", error)
-});
+  const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_SEARCHES, {
+    variables: { limit: 5 },
+    onError: (error) => console.error("Trending error:", error)
+  });
+
+  // Function to sanitize product data and ensure all required fields are present
+  const sanitizeProduct = (rawProduct: any): SafeProduct => {
+    // Default values for all required fields
+    return {
+      id: rawProduct?.id || "",
+      name: rawProduct?.name || "Unnamed Product",
+      code: rawProduct?.code || "No Code",
+      images: {
+        imageMain: rawProduct?.images?.imageMain || "",
+        imageArtTable: rawProduct?.images?.imageArtTable || "",
+        imageWall: rawProduct?.images?.imageWall || "",
+        imageBedroom: rawProduct?.images?.imageBedroom || "",
+        imageRoom: rawProduct?.images?.imageRoom || "",
+        imageLivingRoom: rawProduct?.images?.imageLivingRoom || "",
+        imageSecondLivingRoom: rawProduct?.images?.imageSecondLivingRoom || ""
+      },
+      price: {
+        mrp: typeof rawProduct?.price?.mrp === 'number' ? rawProduct.price.mrp : 0,
+        offerPrice: typeof rawProduct?.price?.offerPrice === 'number' ? rawProduct.price.offerPrice : 0
+      }
+    };
+  };
+
+  // Check if the input looks like a product code
+  const detectProductCodeSearch = (input: string) => {
+    return /^\d+$/.test(input) || /ep\s*\d+/i.test(input);
+  };
+
   const debouncedSearch = useCallback(
     debounce(async (searchTerm: string) => {
-      if (searchTerm.length >= 2) {
-        try {
-          const { data } = await refetch({ query: searchTerm, limit: 5 });
-          if (data?.searchProducts) {
-            setSearchResults(data.searchProducts);
-          }
-        } catch (error) {
-          console.error("Search error:", error);
+      if (!searchTerm || searchTerm.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        // Detect if this looks like a code search
+        const looksLikeCode = detectProductCodeSearch(searchTerm);
+        setIsCodeSearch(looksLikeCode);
+
+        // Try to get search results
+        const result = await refetch({ 
+          query: searchTerm, 
+          limit: 5 
+        });
+
+        // Make sure we have valid results before updating state
+        if (result.data?.searchProducts && Array.isArray(result.data.searchProducts)) {
+          // Sanitize all products before storing them
+          const safeProducts = result.data.searchProducts.map(sanitizeProduct);
+          setSearchResults(safeProducts);
+        } else {
           setSearchResults([]);
         }
-      } else {
+      } catch (error) {
+        console.error("Search error:", error);
         setSearchResults([]);
       }
     }, 300),
@@ -148,21 +208,19 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false);
         setSearchResults([]);
+        setShowSearchTips(false);
       }
     };
   
-    // Add the event listener
     document.addEventListener('mousedown', handleClickOutside);
-  
-    // Clean up the event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
   
-  // Also update your onFocus handler to show results
   const handleFocus = () => {
     setShowResults(true);
+    setShowSearchTips(true);
   };
 
   useEffect(() => {
@@ -177,38 +235,92 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
     if (onClose) onClose();
   };
 
-  const ProductCard = ({ product }: { product: any }) => (
+  // Highlight the matching part of the code
+  const highlightCodeMatch = (code: string, searchTerm: string) => {
+    if (!searchTerm || searchTerm.length < 2) return code;
+    
+    // Check if the search term is numeric
+    const isNumericSearch = /^\d+$/.test(searchTerm);
+    
+    if (isNumericSearch) {
+      // For numeric searches, try to highlight just the number part
+      const regex = new RegExp(`(${searchTerm})`, 'i');
+      return code.replace(regex, '<span class="text-green-600 font-medium">$1</span>');
+    } else {
+      // For text searches, highlight the whole matching part
+      const regex = new RegExp(`(${searchTerm})`, 'gi');
+      return code.replace(regex, '<span class="text-green-600 font-medium">$1</span>');
+    }
+  };
 
-    <div
-      onClick={() => handleProductClick(product.id)}
-      className="flex items-center gap-4 p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
-    >
-      <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-      {product.images?.imageMain ? (
-          <Image
-          src={product.images.imageMain}
-          alt={product.name}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="text-xs text-gray-400 text-center">No image</div>
-        )}
+  // Use sanitized products in the product card
+  const ProductCard = ({ product }: { product: SafeProduct }) => {
+    // Create a highlighted version of the code if there's a search query
+    const highlightedCode = query.length >= 2 
+      ? <span dangerouslySetInnerHTML={{ __html: highlightCodeMatch(product.code, query) }} />
+      : product.code;
+    
+    return (
+      <div
+        onClick={() => handleProductClick(product.id)}
+        className="flex items-center gap-4 p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+      >
+        <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+          {product.images?.imageMain ? (
+            <Image
+              src={product.images.imageMain}
+              alt={product.name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="text-xs text-gray-400 text-center">No image</div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-medium text-gray-900 truncate">
+            {product.name}
+          </h4>
+          <div className="flex items-center">
+            <Hash className="w-3 h-3 text-gray-400 mr-1" />
+            <p className="text-xs text-gray-500">{highlightedCode}</p>
+          </div>
+          <p className="text-sm font-medium text-green-600">
+            ₹{product.price.offerPrice}
+          </p>
+        </div>
+        <ArrowRight className="w-4 h-4 text-gray-400" />
       </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-medium text-gray-900 truncate">
-          {product.name}
-        </h4>
-        <p className="text-xs text-gray-500">{product.code}</p>
-        <p className="text-sm font-medium text-green-600">
-          ₹{product.price?.offerPrice}
-        </p>
-      </div>
-      <ArrowRight className="w-4 h-4 text-gray-400" />
-    </div>
-  );
+    );
+  };
+
+  // Sanitize top suggestions and trending data
+  const sanitizedTopSuggestions = topSuggestionsData?.getTopSearchSuggestions 
+    ? topSuggestionsData.getTopSearchSuggestions.map(sanitizeProduct) 
+    : [];
+
+  const sanitizedTrendingProducts = trendingData?.getTrendingSearches 
+    ? trendingData.getTrendingSearches.map(sanitizeProduct) 
+    : [];
 
   const renderSearchContent = () => {
+    if (showSearchTips && query.length < 2) {
+      return (
+        <div className="p-4 text-gray-600 text-sm">
+          <h3 className="font-medium mb-2">Search Tips:</h3>
+          <ul className="space-y-2">
+            <li className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-gray-500" />
+              <span>Type a product name like "Cotton Curtain"</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Hash className="w-4 h-4 text-gray-500" />
+              <span>Search by product code like "EP 401" or just "401"</span>
+            </li>
+          </ul>
+        </div>
+      );
+    }
     
     if (query.length >= 2) {
       if (searchLoading) {
@@ -230,13 +342,24 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
       if (searchResults.length === 0) {
         return (
           <div className="p-8 text-center text-gray-500">
-            No products found for "{query}"
+            <p>No products found for "{query}"</p>
+            <p className="text-xs mt-2">
+              Try searching with a product name or code (e.g., "EP 401" or just "401")
+            </p>
           </div>
         );
       }
 
       return (
         <div className="divide-y divide-gray-100">
+          {isCodeSearch && (
+            <div className="px-4 py-2 bg-gray-50 flex justify-between items-center">
+              <div className="text-xs text-gray-500 flex items-center">
+                <Hash className="w-3 h-3 mr-1 text-gray-400" />
+                <span>Searching product codes</span>
+              </div>
+            </div>
+          )}
           {searchResults.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -246,50 +369,50 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
 
     // Show suggestions and trending when no search query
     return (
-        <div className="divide-y divide-gray-100">
-          {/* Top Suggestions */}
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Star className="w-4 h-4 text-yellow-500" />
-              <h3 className="text-sm font-medium text-gray-900">Top Suggestions</h3>
-            </div>
-            {topSuggestionsLoading ? (
-              <div className="animate-pulse space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded w-3/4" />
-                ))}
-              </div>
-            ) : topSuggestionsData?.getTopSearchSuggestions?.length > 0 ? (
-              topSuggestionsData.getTopSearchSuggestions.map((product: any) => (
-                <ProductCard key={product.id} product={product} />
-              ))
-            ) : (
-              <NoResultsMessage title="top suggestions" />
-            )}
+      <div className="divide-y divide-gray-100">
+        {/* Top Suggestions */}
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Star className="w-4 h-4 text-yellow-500" />
+            <h3 className="text-sm font-medium text-gray-900">Top Suggestions</h3>
           </div>
-      
-          {/* Trending Searches */}
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              <h3 className="text-sm font-medium text-gray-900">Trending Now</h3>
+          {topSuggestionsLoading ? (
+            <div className="animate-pulse space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded w-3/4" />
+              ))}
             </div>
-            {trendingLoading ? (
-              <div className="animate-pulse space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded w-3/4" />
-                ))}
-              </div>
-            ) : trendingData?.getTrendingSearches?.length > 0 ? (
-              trendingData.getTrendingSearches.map((product: any) => (
-                <ProductCard key={product.id} product={product} />
-              ))
-            ) : (
-              <NoResultsMessage title="trending searches" />
-            )}
-          </div>
+          ) : sanitizedTopSuggestions.length > 0 ? (
+            sanitizedTopSuggestions.map((product:any) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <NoResultsMessage title="top suggestions" />
+          )}
         </div>
-      );
+    
+        {/* Trending Searches */}
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-blue-500" />
+            <h3 className="text-sm font-medium text-gray-900">Trending Now</h3>
+          </div>
+          {trendingLoading ? (
+            <div className="animate-pulse space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded w-3/4" />
+              ))}
+            </div>
+          ) : sanitizedTrendingProducts.length > 0 ? (
+            sanitizedTrendingProducts.map((product:any) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <NoResultsMessage title="trending searches" />
+          )}
+        </div>
+      </div>
+    );
   };
 
   const searchContent = (
@@ -304,7 +427,7 @@ const { data: trendingData, loading: trendingLoading } = useQuery(GET_TRENDING_S
             setShowResults(true);
           }}
           onFocus={handleFocus}
-          placeholder="Search for Stunning Products..."
+          placeholder="Search by name or product code (e.g., EP 401 or 401)"
           className={`w-full px-4 py-2 pl-10 ${
             isMobile ? "text-gray-800" : "text-black"
           } border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-transparent`}

@@ -49,18 +49,17 @@ const ContactUs = () => {
             <p className="text-gray-700 mb-4">Manufactured, Packed & Marketed By:</p>
             <p className="text-gray-700">
               <strong>Registered Address:</strong> <br />
-              EcoPlaster Innovations Pvt Ltd <br />
-              3rd Floor, Green Emporium, <br />
-              97-99, Green Street, <br />
-              Bengaluru, Karnataka, India.
+              RXW Group Pvt Ltd <br />
+              2nd Floor, 14-40/A, <br />
+              Dhanalakshmi Nagar, VK Puram, <br />
+              Tirupati, Andhra Pradesh, India.
             </p>
             <p className="mt-4 text-gray-700">
               <strong>Customer Support:</strong>
             </p>
             <ul className="list-disc ml-5 text-gray-700">
               <li>Phone: +91 9883333123</li>
-              <li>Email: support@ecoplaster.co</li>
-            </ul>
+             </ul>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -102,7 +101,7 @@ const ContactUs = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">Select Category:</label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {["Placing a new order", "Order modification", "Delivery information", "Issue with delivered products", "Return & replacement", "Order cancellation", "Others"].map((category, index) => (
+                  {["Placing a new order", "Order modification", "Delivery information", "Issue with delivered products", "Order cancellation", "Others"].map((category, index) => (
                     <button
                       key={index}
                       type="button"

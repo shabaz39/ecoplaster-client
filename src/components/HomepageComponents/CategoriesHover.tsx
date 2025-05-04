@@ -41,10 +41,7 @@ const categories = [
   {
     name: "About Us",
     links: [
-      {
-        name: "Office Address: 2nd Floor, police station, 14-40/A, Dhanalaxmi Nagar, beside MR Palli, Vk Puram, Tirupati, Andhra Pradesh 517501",
-        href: "/aboutus",
-      },
+    
       {
         name: "Mission: Revolutionizing wall finishes with sustainable & innovative solutions.",
         href: "/aboutus",
