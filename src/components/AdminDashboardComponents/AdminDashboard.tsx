@@ -78,24 +78,25 @@ const AdminDashboard: React.FC = () => {
         alert("Please select at least one image");
         return;
       }
-
+  
       const uploadFiles = files.map(file => new File(
         [file],
         file.name,
         { type: file.type, lastModified: new Date().getTime() }
       ));
-
+  
       const { data } = await createBlog({
         variables: {
           input: {
             ...formData,
-            metaTags: formData.metaTags.split(",").map(tag => tag.trim()),
+            // No need to split since formData.metaTags is already an array
+            metaTags: formData.metaTags,
             published: false
           },
           files: uploadFiles
         }
       });
-
+  
       if (data?.createBlog) {
         alert("Blog created successfully!");
         setShowBlogForm(false);
@@ -115,7 +116,8 @@ const AdminDashboard: React.FC = () => {
           id: editingBlog.id,
           input: {
             ...formData,
-            metaTags: formData.metaTags.split(',').map(tag => tag.trim())
+            // No need to split since formData.metaTags is already an array
+            metaTags: formData.metaTags
           },
           files: files.length > 0 ? files : undefined
         }
@@ -253,7 +255,7 @@ const AdminDashboard: React.FC = () => {
                   initialData={editingBlog ? {
                     title: editingBlog.title,
                     body: editingBlog.body,
-                    metaTags: editingBlog.metaTags.join(', '),
+        metaTags: editingBlog.metaTags,
                     author: editingBlog.author
                   } : undefined}
                   loading={false}
