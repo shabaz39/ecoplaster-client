@@ -4,7 +4,7 @@ import React from "react";
 
 const BulkOrderForm: React.FC = () => {
   return (
-    <section className="bg-white py-8 ">
+    <section className="bg-white py-8 text-black ">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Section: Image */}
         <div className="flex justify-center lg:m-32">
