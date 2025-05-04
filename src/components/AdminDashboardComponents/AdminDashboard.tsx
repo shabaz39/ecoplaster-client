@@ -25,6 +25,7 @@ import { GET_ALL_CONTACTS } from '@/constants/queries/allGETrequests';
 import LoadingSpinner from './Common/LoadingSpinner';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import StoreManagement from './StoreManagement/StoreManagement';
 
 interface TabType {
   id: string;
@@ -54,6 +55,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'orders', label: 'Orders', icon: '📦' },  // Add this line
     { id: 'products', label: 'Products', icon: '📦' },
     { id: 'promotions', label: 'Promotions', icon: '🏷️' },
+    { id: 'stores', label: 'Stores', icon: '🏪' },
     { id: 'announcements', label: 'Announcements', icon: '📢' },
     { id: 'users', label: 'Users', icon: '👥' },
     { id: 'dealers', label: 'Dealers', icon: '🏪' },
@@ -214,6 +216,8 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'products' && <ProductManagement />}
         
         {activeTab === 'promotions' && <PromotionManagement />}
+
+        {activeTab === 'stores' && <StoreManagement />}
 
         {activeTab === 'announcements' && <AnnouncementList />}
         

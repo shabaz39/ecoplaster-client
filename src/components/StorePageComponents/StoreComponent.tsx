@@ -1,20 +1,28 @@
-import React from "react";
-import { MapPin, Phone, Star } from "lucide-react";
+"use client";
 
-const stores = [
-  { name: "Tirupati, Andhra Pradesh", reviews: 5123, rating: 5, address: "EcoPlaster Store, Main Road, Tirupati, Andhra Pradesh", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "https://www.google.com/maps/place/Ecoplaster/@13.6157,79.411334,17z/data=!3m1!4b1!4m6!3m5!1s0x3a4d4b936751f17d:0x75634cd60e4c1d17!8m2!3d13.6156948!4d79.4139143!16s%2Fg%2F11y3nq6t7v?entry=ttu&g_ep=EgoyMDI1MDEyMi4wIKXMDSoASAFQAw%3D%3D" },
-  { name: "Kakinada, Andhra Pradesh", reviews: 4321, rating: 5, address: "EcoPlaster Store, Downtown Kakinada, Andhra Pradesh", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Bangalore, Karnataka", reviews: 12345, rating: 5, address: "EcoPlaster Store, MG Road, Bangalore, Karnataka", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Koduvally, Calicut", reviews: 3456, rating: 5, address: "EcoPlaster Store, Market Road, Koduvally, Calicut", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Deoli, Rajasthan", reviews: 2789, rating: 5, address: "EcoPlaster Store, Main Bazar, Deoli, Rajasthan", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Bhubaneshwar, Odisha", reviews: 3987, rating: 5, address: "EcoPlaster Store, Janpath, Bhubaneshwar, Odisha", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Ambala, Haryana", reviews: 4521, rating: 5, address: "EcoPlaster Store, Sadar Bazar, Ambala, Haryana", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Hisar, Haryana", reviews: 3890, rating: 5, address: "EcoPlaster Store, Urban Estate, Hisar, Haryana", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Anantnag, Jammu and Kashmir", reviews: 2954, rating: 5, address: "EcoPlaster Store, Main Road, Anantnag, Jammu and Kashmir", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-  { name: "Srinagar, Jammu and Kashmir", reviews: 4120, rating: 5, address: "EcoPlaster Store, Lal Chowk, Srinagar, Jammu and Kashmir", timing: "10:00AM to 09:00PM", phone: "9492991123", directions: "#" },
-];
+import React, { useState } from "react";
+import { MapPin, Phone, Star, ExternalLink, Loader } from "lucide-react";
+import { useQuery } from '@apollo/client';
+import { GET_ACTIVE_STORES } from '@/constants/queries/storeQueries';
 
 const StoreCards = () => {
+  const { loading, error, data } = useQuery(GET_ACTIVE_STORES);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Get stores from query result
+  const stores = data?.getActiveStores || [];
+  
+  // Filter stores based on search term
+  const filteredStores = stores.filter((store: any) => {
+    if (!searchTerm.trim()) return true;
+    
+    const search = searchTerm.toLowerCase();
+    return (
+      store.city.toLowerCase().includes(search) ||
+      store.address.toLowerCase().includes(search)
+    );
+  });
+
   // Generate a background color based on store name
   const getBackgroundColor = (name: string) => {
     const colors = [
@@ -28,12 +36,57 @@ const StoreCards = () => {
     return colors[index];
   };
 
-  // Get initial letters from store name
-  const getInitials = (name: string) => {
-    // Extract city name from the store name (before the comma)
-    const city = name.split(',')[0];
-    return city.charAt(0);
+  // Get initial letter from store city
+  const getInitials = (city: string) => {
+    return city.charAt(0).toUpperCase();
   };
+
+  if (loading) {
+    return (
+      <section className="bg-cream py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
+            Our Stores
+          </h2>
+          <div className="flex justify-center items-center py-20">
+            <Loader className="h-12 w-12 animate-spin text-greenComponent" />
+            <span className="ml-4 text-gray-600">Loading stores...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    console.error("Error loading stores:", error);
+    return (
+      <section className="bg-cream py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
+            Our Stores
+          </h2>
+          <div className="text-center py-20">
+            <p className="text-red-500">Sorry, we couldn't load our store locations at the moment. Please try again later.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (stores.length === 0) {
+    return (
+      <section className="bg-cream py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
+            Our Stores
+          </h2>
+          <div className="text-center py-20">
+            <p className="text-gray-600">No store locations are available at the moment. Please check back later.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-cream py-12 px-6">
@@ -41,42 +94,93 @@ const StoreCards = () => {
         <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
           Our Stores
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stores.map((store, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
-              {/* Placeholder with letter instead of image */}
-              <div className={`w-full h-60 ${getBackgroundColor(store.name)} flex items-center justify-center`}>
-                <span className="text-white text-8xl font-bold">
-                  {getInitials(store.name)}
-                </span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-productNameColor mb-2">
-                  {store.name}
-                </h3>
-                <div className="flex items-center mb-2">
-                  {[...Array(store.rating)].map((_, i) => (
-                    <Star key={i} className="text-newgreen" size={16} fill="#FFD700" />
-                  ))}
-                  <span className="ml-2 text-gray-600 text-sm">
-                    ({store.reviews} Reviews)
+        
+        {/* Search bar */}
+        <div className="mb-8 max-w-md mx-auto">
+          <input
+            type="text"
+            placeholder="Search stores by city or address..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-greenComponent focus:border-transparent"
+          />
+        </div>
+        
+        {filteredStores.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-600">No stores found matching your search criteria.</p>
+            <button
+              onClick={() => setSearchTerm('')}
+              className="mt-4 text-greenComponent hover:underline"
+            >
+              Clear search and show all stores
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredStores.map((store: any) => (
+              <div key={store.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                {/* Placeholder with letter instead of image */}
+                <div className={`w-full h-60 ${getBackgroundColor(store.city)} flex items-center justify-center`}>
+                  <span className="text-white text-8xl font-bold">
+                    {getInitials(store.city)}
                   </span>
                 </div>
-                <p className="text-gray-700 text-sm mb-2">{store.address}</p>
-                <p className="text-gray-700 text-sm font-semibold">
-                  Timing: {store.timing}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Phone size={16} className="text-newgreen" />
-                  <a href={`tel:${store.phone}`} className="text-newgreen font-semibold">
-                    {store.phone}
-                  </a>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-productNameColor mb-2">
+                    {store.city}
+                  </h3>
+                  <div className="flex items-center mb-3">
+                    <div className="flex items-center text-newgreen">
+                      <span className="font-medium mr-1">
+                        {store.storeCount > 1 ? `${store.storeCount} Stores` : "1 Store"}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start mb-3">
+                    <MapPin size={18} className="text-newgreen shrink-0 mt-1 mr-2" />
+                    <p className="text-gray-700 text-sm">{store.address}</p>
+                  </div>
+                  
+                  <div className="flex items-center mb-2">
+                    <Phone size={18} className="text-newgreen mr-2" />
+                    <a href={`tel:${store.phoneNumber}`} className="text-newgreen font-medium">
+                      {store.phoneNumber}
+                    </a>
+                  </div>
+                  
+                  {store.email && (
+                    <div className="flex items-center mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-newgreen mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                      </svg>
+                      <a href={`mailto:${store.email}`} className="text-newgreen font-medium">
+                        {store.email}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {/* Map Directions Button (if coordinates are available) */}
+                  {store.coordinates && (
+                    <div className="mt-4">
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${store.coordinates.latitude},${store.coordinates.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-4 py-2 bg-greenComponent text-white rounded-md hover:bg-newgreen transition-colors"
+                      >
+                        <ExternalLink size={16} className="mr-2" />
+                        Get Directions
+                      </a>
+                    </div>
+                  )}
                 </div>
-                
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
