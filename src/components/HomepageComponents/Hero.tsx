@@ -12,7 +12,7 @@ const Hero: React.FC = () => {
     "https://res.cloudinary.com/djzmj5oqp/image/upload/c_fit,w_1920,h_1080/Hallway_Entrance_1920x108_EP_416_xj30tj.jpg",
     "https://res.cloudinary.com/djzmj5oqp/image/upload/c_fit,w_1920,h_1080/Laundry_Room_EP_401_v1_uecfqp.jpg",
     "https://res.cloudinary.com/djzmj5oqp/image/upload/c_fit,w_1920,h_1080/Master_Bedroom__EP_396_V2_dhxlif.jpg",
-    "https://res.cloudinary.com/djzmj5oqp/image/upload/Gamming_room_Ep_228_ykfhif.jpg",
+    "https://res.cloudinary.com/drkqmn19l/image/upload/v1746361203/zozwru0un7o6s7pdgotk.jpg",
     "https://res.cloudinary.com/djzmj5oqp/image/upload/TV_room_EP_391_dmyljj.jpg",
     "https://res.cloudinary.com/djzmj5oqp/image/upload/Walk-In_Closet_lpjrwy.jpg",
     "https://res.cloudinary.com/djzmj5oqp/image/upload/c_fit,w_1920,h_1080/Dining_Area_img_CC_6.1_yocmhk.jpg",

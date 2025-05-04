@@ -33,7 +33,7 @@ const HomepageCalculatorSection: React.FC = () => {
           {/* Left: Calculator Preview Image */}
           <div className="w-full md:w-1/2 rounded-lg overflow-hidden">
             <img 
-              src="/calculator-preview.webp" 
+              src="/calculator-image.webp" 
               alt="Project Calculator Preview" 
               className="w-full h-auto rounded-lg object-cover shadow-md"
               onError={(e) => {
