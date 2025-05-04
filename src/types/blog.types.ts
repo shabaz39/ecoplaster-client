@@ -48,7 +48,7 @@ export interface UpdateBlogArgs {
 export interface BlogFormData {
   title: string;
   body: string;
-  metaTags: string;
+  metaTags: string[]; // Change from string to string[]
   author: string;
 }
 

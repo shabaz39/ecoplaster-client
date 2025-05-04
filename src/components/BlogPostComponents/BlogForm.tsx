@@ -18,16 +18,16 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   const [formData, setFormData] = useState<BlogFormData>(initialData || {
     title: '',
     body: '',
-    metaTags: initialData?.metaTags?.join(', ') || '', // Join array for editing
+    metaTags: [], // Initialize as an empty array
     author: ''
   });
+  const [tagInput, setTagInput] = useState(''); // New state for the input field
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
 
   const handleDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
   
-    // Create preview URLs
     const previewUrls = acceptedFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => {
       // Clean up old previews
@@ -35,6 +35,8 @@ export const BlogForm: React.FC<BlogFormProps> = ({
       return previewUrls;
     });
   }, []);
+
+  
   
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -42,40 +44,34 @@ export const BlogForm: React.FC<BlogFormProps> = ({
       'image/png': ['.png'],
       'image/webp': ['.webp']
     },
-    onDrop: handleDrop, // Use the handleDrop function
+    onDrop: handleDrop,
   });
+
+  // When handling input for metaTags, convert the comma-separated string to an array
+  const handleMetaTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tagsString = e.target.value;
+    setTagInput(tagsString); // Update the input field state
+    
+    // Convert to array for the formData
+    const tagsArray = tagsString.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag !== '');
+    setFormData({ ...formData, metaTags: tagsArray });
+  };
   
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   console.log("Files before submitting:", files);
 
-  if (!files.length && !initialData) { // Don't require files on update if none provided
-    alert('Please select at least one image when creating a new blog');
+  if (!files.length) {
+    alert('Please select at least one image');
     return;
   }
-
-   // Convert metaTags string back to array before submitting
-   const metaTagsArray = formData.metaTags
-   .split(',')
-   .map(tag => tag.trim())
-   .filter(tag => tag !== '');
-
- // Prepare the final data structure matching BlogInput
- const finalInputData = {
-     title: formData.title,
-     body: formData.body,
-     author: formData.author,
-     metaTags: metaTagsArray, // Send as array
-     // Add other fields from BlogInput if needed (e.g., published)
- };
-
- try {
-  // Pass the correctly structured input and files
-  await onSubmit(finalInputData, files);
-} catch (error) {
-  console.error('Form submission error:', error);
-}
+  try {
+    // No need to modify metaTags, they're already in the correct format
+    await onSubmit(formData, files);
+  } catch (error) {
+    console.error('Form submission error:', error);
+  }
 };
 
 
@@ -160,7 +156,7 @@ export const BlogForm: React.FC<BlogFormProps> = ({
         <input
           type="text"
           value={formData.metaTags}
-          onChange={(e) => setFormData({ ...formData, metaTags: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="tag1, tag2, tag3"
           className="mt-1 block w-full rounded-md border text-black border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
           required
