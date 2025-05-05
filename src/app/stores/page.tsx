@@ -4,6 +4,7 @@ import Footer from '@/components/HomepageComponents/Footer'
 import Hero from '@/components/HomepageComponents/Hero'
 import Navbar from '@/components/HomepageComponents/Navbar'
 import StoreCards from '@/components/StorePageComponents/StoreComponent'
+import StoresPageNew from '@/components/StorePageComponents/StorePageNew'
 import React from 'react'
 
 const StoresPage = () => {
@@ -12,7 +13,7 @@ const StoresPage = () => {
         <AnnouncementBanner/>
      <Navbar/>
         <Hero/>
-      <StoreCards/>
+      <StoresPageNew/>
       <Footer/>
     </div>
   )
