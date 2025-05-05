@@ -21,7 +21,11 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     metaTags: [], // Initialize as an empty array
     author: ''
   });
-  const [tagInput, setTagInput] = useState(''); // New state for the input field
+  const [tagInput, setTagInput] = useState(
+    initialData && initialData.metaTags ? 
+    initialData.metaTags.join(', ') : 
+    ''
+  );
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
 
@@ -155,8 +159,8 @@ export const BlogForm: React.FC<BlogFormProps> = ({
         <label className="block text-sm font-medium text-gray-700">Meta Tags</label>
         <input
           type="text"
-          value={formData.metaTags}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          value={tagInput}
+    onChange={handleMetaTagsChange}
           placeholder="tag1, tag2, tag3"
           className="mt-1 block w-full rounded-md border text-black border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
           required
