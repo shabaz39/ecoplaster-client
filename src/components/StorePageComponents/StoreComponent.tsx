@@ -1,87 +1,72 @@
+// ecoplaster-client/src/components/StoresSection.tsx
 "use client";
 
-import React, { useState } from "react";
-import { MapPin, Phone, Star, ExternalLink, Loader } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@apollo/client';
 import { GET_ACTIVE_STORES } from '@/constants/queries/storeQueries';
 
-const StoreCards = () => {
-  const { loading, error, data } = useQuery(GET_ACTIVE_STORES);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Get stores from query result
+interface Store {
+  id: string;
+  city: string;
+  state: string;
+  icon: string;
+}
+
+const StoresSection: React.FC = () => {
+  const visibleCards = 8; // Number of cards visible at a time
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  // Fetch stores from server
+  const { data, loading, error } = useQuery(GET_ACTIVE_STORES);
   const stores = data?.getActiveStores || [];
-  
-  // Filter stores based on search term
-  const filteredStores = stores.filter((store: any) => {
-    if (!searchTerm.trim()) return true;
-    
-    const search = searchTerm.toLowerCase();
-    return (
-      store.city.toLowerCase().includes(search) ||
-      store.address.toLowerCase().includes(search)
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % stores.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex(
+      (prevIndex) => (prevIndex - 1 + stores.length) % stores.length
     );
-  });
-
-  // Generate a background color based on store name
-  const getBackgroundColor = (name: string) => {
-    const colors = [
-      "bg-blue-500", "bg-green-500", "bg-yellow-500", 
-      "bg-purple-500", "bg-pink-500", "bg-indigo-500", 
-      "bg-red-500", "bg-orange-500", "bg-teal-500"
-    ];
-    
-    // Use the first character of store name to consistently select a color
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
   };
 
-  // Get initial letter from store city
-  const getInitials = (city: string) => {
-    return city.charAt(0).toUpperCase();
+  const getVisibleStores = () => {
+    const result = [];
+    for (let i = 0; i < visibleCards; i++) {
+      // If we don't have enough stores, show fewer cards
+      if (i >= stores.length) break;
+      const index = (currentIndex + i) % stores.length;
+      result.push(stores[index]);
+    }
+    return result;
   };
 
+  const visibleStores = stores.length > 0 ? getVisibleStores() : [];
+
+  const navigateTo = (path: string) => {
+    setIsLoading(true); // Start loading
+    setTimeout(() => {
+      router.push(path);
+    }, 500);
+  };
+
+  // If loading, show skeleton UI
   if (loading) {
     return (
-      <section className="bg-cream py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
-            Our Stores
-          </h2>
-          <div className="flex justify-center items-center py-20">
-            <Loader className="h-12 w-12 animate-spin text-greenComponent" />
-            <span className="ml-4 text-gray-600">Loading stores...</span>
+      <section className="bg-white py-8 px-4 sm:px-8 lg:px-64">
+        <div className="max-w-8xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <div className="bg-gray-200 h-8 w-48 rounded-md animate-pulse"></div>
+            <div className="bg-gray-200 h-8 w-32 rounded-md animate-pulse"></div>
           </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    console.error("Error loading stores:", error);
-    return (
-      <section className="bg-cream py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
-            Our Stores
-          </h2>
-          <div className="text-center py-20">
-            <p className="text-red-500">Sorry, we couldn't load our store locations at the moment. Please try again later.</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (stores.length === 0) {
-    return (
-      <section className="bg-cream py-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
-            Our Stores
-          </h2>
-          <div className="text-center py-20">
-            <p className="text-gray-600">No store locations are available at the moment. Please check back later.</p>
+          <div className="flex gap-4 overflow-hidden">
+            {[...Array(visibleCards)].map((_, index) => (
+              <div key={index} className="w-40 bg-gray-200 rounded-md shadow-md p-4 h-32 animate-pulse"></div>
+            ))}
           </div>
         </div>
       </section>
@@ -89,96 +74,81 @@ const StoreCards = () => {
   }
 
   return (
-    <section className="bg-cream py-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-3xl font-bold text-productNameColor mb-6">
-          Our Stores
-        </h2>
-        
-        {/* Search bar */}
-        <div className="mb-8 max-w-md mx-auto">
-          <input
-            type="text"
-            placeholder="Search stores by city or address..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-greenComponent focus:border-transparent"
-          />
+    <section className="bg-white py-8 px-4 sm:px-8 lg:px-64">
+      <div className="max-w-8xl mx-auto ">
+        {/* Section Title */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="relative pb-2 text-2xl font-bold text-gray-800 text-left">
+            Ecoplaster Stores        
+            <div className="mt-1">
+              <span className="absolute left-0 bottom-0 h-[3px] w-14 bg-newgreen rounded-md"></span>
+            </div>
+          </h2>
+
+          <button 
+            className="text-sm font-medium text-newgreen hover:underline"
+            onClick={() => navigateTo("/stores")}
+          >
+            {stores.length}+ Stores &rarr;
+          </button>
         </div>
-        
-        {filteredStores.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-gray-600">No stores found matching your search criteria.</p>
-            <button
-              onClick={() => setSearchTerm('')}
-              className="mt-4 text-greenComponent hover:underline"
-            >
-              Clear search and show all stores
-            </button>
+
+        {/* Error state */}
+        {error && (
+          <div className="p-4 text-red-600 bg-red-100 rounded-md">
+            Error loading stores. Please try again later.
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStores.map((store: any) => (
-              <div key={store.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                {/* Placeholder with letter instead of image */}
-                <div className={`w-full h-60 ${getBackgroundColor(store.city)} flex items-center justify-center`}>
-                  <span className="text-white text-8xl font-bold">
-                    {getInitials(store.city)}
-                  </span>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-productNameColor mb-2">
-                    {store.city}
-                  </h3>
-                  <div className="flex items-center mb-3">
-                    <div className="flex items-center text-newgreen">
-                      <span className="font-medium mr-1">
-                        {store.storeCount > 1 ? `${store.storeCount} Stores` : "1 Store"}
-                      </span>
-                    </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && stores.length === 0 && (
+          <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-md">
+            No stores are currently available.
+          </div>
+        )}
+
+        {/* Scrollable Store Cards */}
+        {!loading && !error && stores.length > 0 && (
+          <div className="relative flex items-center">
+            {/* Left Navigation */}
+            <button
+              onClick={handlePrev}
+              className="bg-white rounded-full shadow-md p-2 z-10 hover:bg-gray-200 disabled:opacity-50"
+              disabled={stores.length <= visibleCards}
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-800" />
+            </button>
+
+            {/* Scrollable container */}
+            <div className="overflow-hidden flex-1">
+              <div className="flex transition-transform duration-300 ease-in-out">
+                {visibleStores.map((store, index) => (
+                  <div
+                    key={store.id}
+                    className="flex-shrink-0 w-40 bg-gray-100 rounded-md shadow-md p-4 mx-2 text-center"
+                  >
+                    <img
+                      src={store.icon}
+                      alt={store.city}
+                      className="w-12 h-12 mx-auto mb-3"
+                    />
+                    <h3 className="text-sm font-bold text-gray-800">
+                      {store.city}
+                    </h3>
+                    <p className="text-xs text-gray-600">{store.state}</p>
                   </div>
-                  
-                  <div className="flex items-start mb-3">
-                    <MapPin size={18} className="text-newgreen shrink-0 mt-1 mr-2" />
-                    <p className="text-gray-700 text-sm">{store.address}</p>
-                  </div>
-                  
-                  <div className="flex items-center mb-2">
-                    <Phone size={18} className="text-newgreen mr-2" />
-                    <a href={`tel:${store.phoneNumber}`} className="text-newgreen font-medium">
-                      {store.phoneNumber}
-                    </a>
-                  </div>
-                  
-                  {store.email && (
-                    <div className="flex items-center mb-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-newgreen mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                      <a href={`mailto:${store.email}`} className="text-newgreen font-medium">
-                        {store.email}
-                      </a>
-                    </div>
-                  )}
-                  
-                  {/* Map Directions Button (if coordinates are available) */}
-                  {store.coordinates && (
-                    <div className="mt-4">
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${store.coordinates.latitude},${store.coordinates.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-4 py-2 bg-greenComponent text-white rounded-md hover:bg-newgreen transition-colors"
-                      >
-                        <ExternalLink size={16} className="mr-2" />
-                        Get Directions
-                      </a>
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Right Navigation */}
+            <button
+              onClick={handleNext}
+              className="bg-white rounded-full shadow-md p-2 z-10 hover:bg-gray-200 disabled:opacity-50"
+              disabled={stores.length <= visibleCards}
+            >
+              <ChevronRight className="w-5 h-5 text-gray-800" />
+            </button>
           </div>
         )}
       </div>
@@ -186,4 +156,4 @@ const StoreCards = () => {
   );
 };
 
-export default StoreCards;
+export default StoresSection;
