@@ -106,7 +106,7 @@ const WishlistComponent: React.FC<WishlistComponentProps> = ({ userId }) => {
             }`}
           >
             <div className="relative">
-              <Link href={`/product/${product.id}`}>
+              <Link href={`/productDescription/${product.id}`}>
                 <img
   src={product.images?.imageMain || '/product1 (1).webp'} 
   alt={product.name || 'Product'} 
@@ -122,7 +122,7 @@ const WishlistComponent: React.FC<WishlistComponentProps> = ({ userId }) => {
               </button>
             </div>
             <div className="p-4">
-              <Link href={`/product/${product.id}`}>
+              <Link href={`/productDescription/${product.id}`}>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2 hover:text-newgreensecond transition-colors">
                   {product.name}
                 </h3>
@@ -143,7 +143,7 @@ const WishlistComponent: React.FC<WishlistComponentProps> = ({ userId }) => {
                   )}
                 </div>
                 <Link
-                  href={`/product/${product.id}`}
+                  href={`/productDescription/${product.id}`}
                   className="flex items-center justify-center bg-newgreensecond text-white p-2 rounded hover:bg-newgreen transition-colors"
                 >
                   <ShoppingCart size={18} />

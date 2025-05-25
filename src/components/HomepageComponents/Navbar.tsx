@@ -6,7 +6,14 @@ import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext"; // Import the wishlist hook
 import {
-  Menu, X, Search, ShoppingCart, Heart, User, Phone, BadgeIndianRupee
+  Menu,
+  X,
+  Search,
+  ShoppingCart,
+  Heart,
+  User,
+  Phone,
+  BadgeIndianRupee,
 } from "lucide-react";
 import Categories from "./CategoriesHover";
 import SignupModal from "./Signup";
@@ -28,7 +35,7 @@ const Navbar: React.FC = () => {
   const [isDealerModalOpen, setIsDealerModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
-  
+
   const router = useRouter();
   const { cartCount, toggleCart } = useCart();
   const { wishlistCount } = useWishlist(); // Use the wishlist context
@@ -54,10 +61,13 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <div className="relative"> 
+    <div className="relative">
       <CartSidebar />
       <SignupModal isOpen={isModalOpen} onClose={toggleModal} />
-      <DealerModal isOpen={isDealerModalOpen} onClose={() => setIsDealerModalOpen(false)} />
+      <DealerModal
+        isOpen={isDealerModalOpen}
+        onClose={() => setIsDealerModalOpen(false)}
+      />
 
       <header className="bg-newgreensecond text-white shadow-md relative z-40 w-full">
         {/* Main Navbar */}
@@ -65,8 +75,8 @@ const Navbar: React.FC = () => {
           <div className="flex items-center justify-between py-4">
             {/* Left Section */}
             <div className="flex items-center gap-4">
-              <button 
-                onClick={toggleMenu} 
+              <button
+                onClick={toggleMenu}
                 className="text-white hover:text-newbeige"
                 aria-label="Toggle Menu"
               >
@@ -89,19 +99,19 @@ const Navbar: React.FC = () => {
             <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
               {/* Desktop Navigation */}
               <div className="hidden lg:flex items-center gap-6">
-                <button 
+                <button
                   onClick={() => setIsDealerModalOpen(true)}
                   className="text-white hover:text-newbeige transition-colors whitespace-nowrap"
                 >
                   Become a Dealer
                 </button>
-                <button 
+                <button
                   onClick={() => navigateTo("/stores")}
                   className="text-white hover:text-newbeige transition-colors"
                 >
                   Stores
                 </button>
-                <button 
+                <button
                   onClick={() => navigateTo("/bulkorders")}
                   className="text-white hover:text-newbeige transition-colors"
                 >
@@ -111,25 +121,25 @@ const Navbar: React.FC = () => {
 
               {/* Mobile Icons */}
               <div className="flex items-center gap-2 sm:gap-4">
-                <button 
-                  className="text-white sm:hidden hover:text-newbeige" 
+                <button
+                  className="text-white sm:hidden hover:text-newbeige"
                   onClick={toggleSearch}
                   aria-label="Search"
                 >
                   <Search size={20} />
                 </button>
 
-                <button 
+                <button
                   className="text-white hover:text-newbeige hidden sm:block"
                   onClick={() => navigateTo("/contactus")}
                   aria-label="Contact"
                 >
-                  <Phone size={20} />
+                  Call us
                 </button>
 
                 {/* Wishlist Icon */}
-                <Link 
-                  href="/wishlist" 
+                <Link
+                  href="/wishlist"
                   className="relative text-white hover:text-newbeige transition-colors"
                   aria-label="View your wishlist"
                 >
@@ -143,12 +153,16 @@ const Navbar: React.FC = () => {
 
                 {/* User Section */}
                 <div className="relative flex items-center">
-                  <button 
-                    className="flex items-center text-white hover:text-newbeige" 
-                    onClick={session?.user ? handleDashboardRedirect : toggleModal}
+                  <button
+                    className="flex items-center text-white hover:text-newbeige"
+                    onClick={
+                      session?.user ? handleDashboardRedirect : toggleModal
+                    }
                   >
                     <User size={20} />
-                    {!session?.user && <span className="ml-2 hidden sm:inline">Login</span>}
+                    {!session?.user && (
+                      <span className="ml-2 hidden sm:inline">Login</span>
+                    )}
                   </button>
 
                   {session?.user && (
@@ -158,15 +172,15 @@ const Navbar: React.FC = () => {
                         {session.user.name}
                       </span>
                       {isAdmin(session.user.email) ? (
-                        <Link 
-                          href="/adminDashboard" 
+                        <Link
+                          href="/adminDashboard"
                           className="text-xs bg-yellow-500 text-black px-2 py-1 rounded hover:bg-yellow-400 whitespace-nowrap"
                         >
                           Admin
                         </Link>
                       ) : (
-                        <Link 
-                          href="/userdashboard" 
+                        <Link
+                          href="/userdashboard"
                           className="text-xs bg-newgreen text-white px-2 py-1 rounded hover:bg-newgreensecond whitespace-nowrap"
                         >
                           Dashboard
@@ -175,10 +189,10 @@ const Navbar: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Cart Icon */}
-                <button 
-                  className="relative text-white hover:text-newbeige" 
+                <button
+                  className="relative text-white hover:text-newbeige"
                   onClick={toggleCart}
                   aria-label="Cart"
                 >
@@ -190,7 +204,7 @@ const Navbar: React.FC = () => {
                   )}
                 </button>
 
-                <button 
+                <button
                   className="text-white hover:text-newbeige hidden sm:block"
                   aria-label="Currency"
                 >
@@ -214,7 +228,14 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Categories */}
           <div className="flex sm:hidden items-center overflow-x-auto no-scrollbar gap-4 px-4 py-2 border-t border-white/10">
-            {["Gold series", "Silk series", "Sofa", "Chips series", "Dual series", "Cotton series"].map((item, index) => (
+            {[
+              "Gold series",
+              "Silk series",
+              "Sofa",
+              "Chips series",
+              "Dual series",
+              "Cotton series",
+            ].map((item, index) => (
               <span key={index} className="text-xs whitespace-nowrap">
                 {item}
               </span>
@@ -224,10 +245,10 @@ const Navbar: React.FC = () => {
       </header>
 
       {/* Side Menu */}
-      <SideMenu 
-        isMenuOpen={isMenuOpen} 
-        toggleMenu={toggleMenu} 
-        session={session} 
+      <SideMenu
+        isMenuOpen={isMenuOpen}
+        toggleMenu={toggleMenu}
+        session={session}
       />
     </div>
   );

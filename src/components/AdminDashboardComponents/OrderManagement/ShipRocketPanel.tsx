@@ -187,8 +187,8 @@ const ShiprocketPanel: React.FC<ShiprocketPanelProps> = ({ order, refetchOrder }
   return (
     <div className="mt-4 bg-white rounded-lg shadow border border-gray-200 text-black">
       {/* Header and Tabs */}
-      <div className="border-b border-gray-200 bg-gray-50 p-3 flex items-center justify-between flex-wrap gap-2">
-         <h3 className="text-base md:text-lg font-medium text-gray-700 flex items-center">
+      <div className="border-b text-black border-gray-200 bg-gray-50 p-3 flex items-center justify-between flex-wrap gap-2">
+         <h3 className="text-base md:text-lg font-medium text-black flex items-center">
             <TruckIcon className="mr-2 h-5 w-5 text-greenComponent" /> Shiprocket Shipping
             </h3>
             <div className="flex space-x-1">
@@ -311,7 +311,7 @@ const ShiprocketPanel: React.FC<ShiprocketPanelProps> = ({ order, refetchOrder }
                 <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
                     <h4 className="font-medium flex items-center text-gray-700 text-sm mb-2"> <FileUp className="h-4 w-4 mr-1 text-green-600" /> 1. Create Order </h4>
                     <p className="text-xs text-gray-600 mb-3"> Push details & dimensions to Shiprocket. </p>
-                    <button onClick={handleCreateOrder} disabled={isInShiprocket || localLoading['createShiprocketOrder']} className={`px-3 py-1.5 text-xs text-white rounded-md w-full flex items-center justify-center ${ isInShiprocket ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' } disabled:opacity-50`}>
+                    <button onClick={handleCreateOrder} disabled={isInShiprocket || localLoading['createShiprocketOrder']} className={`px-3 py-1.5 text-xs text-white bg-green rounded-md w-full flex items-center justify-center ${ isInShiprocket ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' } disabled:opacity-50`}>
                         {localLoading['createShiprocketOrder'] ? <Loader2 className="h-4 w-4 animate-spin"/> : (isInShiprocket ? 'Order Created' : 'Create in Shiprocket')}
                     </button>
                     {isInShiprocket && <p className="mt-1 text-xs text-gray-700">SR Order ID: {order.shiprocketOrderId}</p>}
@@ -322,7 +322,7 @@ const ShiprocketPanel: React.FC<ShiprocketPanelProps> = ({ order, refetchOrder }
                     <h4 className="font-medium flex items-center text-gray-700 text-sm mb-2"> <Tag className="h-4 w-4 mr-1 text-blue-600" /> 2. Assign Courier & AWB </h4>
                     <div className="flex items-center gap-2 mb-3">
                     <input type="number" placeholder="Courier ID" value={courierInputId} onChange={(e) => setCourierInputId(e.target.value)} className="flex-1 p-1.5 border rounded-md text-xs" disabled={!isInShiprocket || hasAWB} />
-                    <button onClick={handleGenerateAWB} disabled={!isInShiprocket || hasAWB || localLoading['generateAWB']} className={`px-3 py-1.5 text-xs text-white rounded-md whitespace-nowrap ${ !isInShiprocket || hasAWB ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' } disabled:opacity-50`}>
+                    <button onClick={handleGenerateAWB} disabled={!isInShiprocket || hasAWB || localLoading['generateAWB']} className={`px-3 py-1.5 text-xs text-white bg-green rounded-md whitespace-nowrap ${ !isInShiprocket || hasAWB ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' } disabled:opacity-50`}>
                         {localLoading['generateAWB'] ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Generate AWB'}
                     </button>
                     </div>
@@ -333,7 +333,7 @@ const ShiprocketPanel: React.FC<ShiprocketPanelProps> = ({ order, refetchOrder }
                 <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
                     <h4 className="font-medium flex items-center text-gray-700 text-sm mb-2"> <Download className="h-4 w-4 mr-1 text-purple-600" /> 3. Generate Label </h4>
                     <p className="text-xs text-gray-600 mb-3"> Download shipping label (Requires AWB). </p>
-                    <button onClick={handleGenerateLabel} disabled={!hasAWB || localLoading['generateLabel']} className={`px-3 py-1.5 text-xs text-white rounded-md w-full flex items-center justify-center ${ !hasAWB ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700' } disabled:opacity-50`}>
+                    <button onClick={handleGenerateLabel} disabled={!hasAWB || localLoading['generateLabel']} className={`px-3 py-1.5 text-xs text-white bg-green rounded-md w-full flex items-center justify-center ${ !hasAWB ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700' } disabled:opacity-50`}>
                         {localLoading['generateLabel'] ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Download Label'}
                     </button>
                 </div>
@@ -342,7 +342,7 @@ const ShiprocketPanel: React.FC<ShiprocketPanelProps> = ({ order, refetchOrder }
                 <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
                     <h4 className="font-medium flex items-center text-gray-700 text-sm mb-2"> <FileText className="h-4 w-4 mr-1 text-orange-600" /> 4. Generate Invoice </h4>
                     <p className="text-xs text-gray-600 mb-3"> Download shipping invoice (Requires SR Order). </p>
-                    <button onClick={handleGenerateInvoice} disabled={!isInShiprocket || localLoading['generateInvoice']} className={`px-3 py-1.5 text-xs text-white rounded-md w-full flex items-center justify-center ${ !isInShiprocket ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700' } disabled:opacity-50`}>
+                    <button onClick={handleGenerateInvoice} disabled={!isInShiprocket || localLoading['generateInvoice']} className={`px-3 py-1.5 text-xs text-white bg-green rounded-md w-full flex items-center justify-center ${ !isInShiprocket ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700' } disabled:opacity-50`}>
                         {localLoading['generateInvoice'] ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Download Invoice'}
                     </button>
                 </div>
@@ -350,7 +350,7 @@ const ShiprocketPanel: React.FC<ShiprocketPanelProps> = ({ order, refetchOrder }
 
              {/* Cancel Order */}
             <div className="mt-4 pt-4 border-t border-gray-200">
-              <button onClick={handleCancelOrder} disabled={!isInShiprocket || localLoading['cancelOrder'] || order?.status === 'Cancelled'} className={`px-4 py-2 rounded-md text-white text-sm ${ !isInShiprocket || order?.status === 'Cancelled' ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700' } disabled:opacity-50`}>
+              <button onClick={handleCancelOrder} disabled={!isInShiprocket || localLoading['cancelOrder'] || order?.status === 'Cancelled'} className={`px-4 py-2 rounded-md text-white bg-green text-sm ${ !isInShiprocket || order?.status === 'Cancelled' ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700' } disabled:opacity-50`}>
                 {localLoading['cancelOrder'] ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Cancel Order in Shiprocket'}
               </button>
                {order?.status === 'Cancelled' && ( <p className="mt-2 text-xs text-red-600">Order already cancelled.</p> )}

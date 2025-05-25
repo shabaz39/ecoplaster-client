@@ -58,7 +58,7 @@ const ContactUs = () => {
               <strong>Customer Support:</strong>
             </p>
             <ul className="list-disc ml-5 text-gray-700">
-              <li>Phone: +91 9883333123</li>
+              <li>Phone: +91 87905 05042</li>
              </ul>
           </div>
 

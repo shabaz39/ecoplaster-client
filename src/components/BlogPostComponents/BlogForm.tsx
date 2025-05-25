@@ -1,11 +1,8 @@
-'use client';
-
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState, useRef } from 'react';
 import { BlogFormData } from '@/types/blog.types';
 
 interface BlogFormProps {
-  onSubmit: (formData: BlogFormData, files: File[]) => Promise<void>;
+  onSubmit: (formData: BlogFormData, files: File[]) => void;
   initialData?: BlogFormData;
   loading?: boolean;
 }
@@ -15,176 +12,248 @@ export const BlogForm: React.FC<BlogFormProps> = ({
   initialData,
   loading = false 
 }) => {
-  const [formData, setFormData] = useState<BlogFormData>(initialData || {
-    title: '',
-    body: '',
-    metaTags: [], // Initialize as an empty array
-    author: ''
-  });
-  const [tagInput, setTagInput] = useState(
-    initialData && initialData.metaTags ? 
-    initialData.metaTags.join(', ') : 
-    ''
+  const [formData, setFormData] = useState<BlogFormData>(
+    initialData || {
+      title: '',
+      body: '',
+      metaTags: [],
+      author: ''
+    }
   );
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [metaTagInput, setMetaTagInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles(acceptedFiles);
-  
-    const previewUrls = acceptedFiles.map((file) => URL.createObjectURL(file));
-    setPreviews((prev) => {
-      // Clean up old previews
-      prev.forEach((url) => URL.revokeObjectURL(url));
-      return previewUrls;
-    });
-  }, []);
-
-  
-  
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'image/webp': ['.webp']
-    },
-    onDrop: handleDrop,
-  });
-
-  // When handling input for metaTags, convert the comma-separated string to an array
-  const handleMetaTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const tagsString = e.target.value;
-    setTagInput(tagsString); // Update the input field state
-    
-    // Convert to array for the formData
-    const tagsArray = tagsString.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag !== '');
-    setFormData({ ...formData, metaTags: tagsArray });
+  // Handle basic form input changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
 
-  console.log("Files before submitting:", files);
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
+    
+    // Create preview URLs
+    const urls = files.map(file => URL.createObjectURL(file));
+    
+    // Clean up any existing preview URLs to prevent memory leaks
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    
+    setPreviewUrls(urls);
+  };
 
-  if (!files.length) {
-    alert('Please select at least one image');
-    return;
-  }
-  try {
-    // No need to modify metaTags, they're already in the correct format
-    await onSubmit(formData, files);
-  } catch (error) {
-    console.error('Form submission error:', error);
-  }
-};
+  // Handle adding a meta tag
+  const handleAddMetaTag = () => {
+    if (!metaTagInput.trim()) return;
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      metaTags: [...prev.metaTags, metaTagInput.trim()] 
+    }));
+    setMetaTagInput('');
+  };
 
+  // Handle removing a meta tag
+  const handleRemoveMetaTag = (tagToRemove: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      metaTags: prev.metaTags.filter(tag => tag !== tagToRemove) 
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submission initiated with:", { formData, selectedFiles });
+    
+    // Validate form
+    if (!formData.title.trim()) {
+      alert("Please enter a title");
+      return;
+    }
+    
+    if (!formData.body.trim()) {
+      alert("Please enter content");
+      return;
+    }
+    
+    if (selectedFiles.length === 0 && !initialData?.title) {
+      alert("Please select at least one image");
+      return;
+    }
+    
+    if (!formData.author.trim()) {
+      alert("Please enter author name");
+      return;
+    }
+    
+    // Call parent's onSubmit
+    onSubmit(formData, selectedFiles);
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Title</label>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          Blog Title *
+        </label>
         <input
           type="text"
+          id="title"
+          name="title"
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="mt-1 block w-full rounded-md border text-black border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+          onChange={handleChange}
           required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          disabled={loading}
         />
       </div>
-
-      {/* Dropzone for images */}
+      
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Images</label>
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
-            ${isDragActive ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-500'}
-          `}
-        >
-          <input {...getInputProps()} />
-          {isDragActive ? (
-            <p className="text-indigo-500">Drop the files here ...</p>
-          ) : (
-            <p className="text-gray-500">
-              Drag & drop images here, or click to select files
+        <label htmlFor="body" className="block text-sm font-medium text-gray-700 mb-1">
+          Content *
+        </label>
+        <textarea
+          id="body"
+          name="body"
+          value={formData.body}
+          onChange={handleChange}
+          required
+          rows={8}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          disabled={loading}
+        />
+      </div>
+      
+      <div>
+        <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
+          Author *
+        </label>
+        <input
+          type="text"
+          id="author"
+          name="author"
+          value={formData.author}
+          onChange={handleChange}
+          required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          disabled={loading}
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Meta Tags
+        </label>
+        <div className="flex mb-2">
+          <input
+            type="text"
+            value={metaTagInput}
+            onChange={(e) => setMetaTagInput(e.target.value)}
+            placeholder="Add meta tag"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            disabled={loading}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddMetaTag();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleAddMetaTag}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            disabled={loading}
+          >
+            Add
+          </button>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mb-2">
+          {formData.metaTags.map((tag, index) => (
+            <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center">
+              <span className="text-sm text-gray-800">{tag}</span>
+              <button
+                type="button"
+                onClick={() => handleRemoveMetaTag(tag)}
+                className="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                disabled={loading}
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Images {!initialData?.title && '*'}
+        </label>
+        <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+          <input
+            type="file"
+            id="images"
+            accept="image/*"
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+            ref={fileInputRef}
+            disabled={loading}
+          />
+          
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              disabled={loading}
+            >
+              {initialData?.title ? 'Replace Images' : 'Select Images'}
+            </button>
+            <p className="text-xs text-gray-500">
+              {initialData?.title 
+                ? 'Leave empty to keep current images'
+                : 'First image will be used as main image'}
             </p>
+          </div>
+          
+          {previewUrls.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {previewUrls.map((url, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={url}
+                    alt={`Preview ${index + 1}`}
+                    className="h-32 w-full object-cover rounded-md"
+                  />
+                  {index === 0 && (
+                    <div className="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-tl-md">
+                      Main
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Image Previews */}
-        {previews.length > 0 && (
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            {previews.map((url, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  className="h-24 w-full object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newFiles = [...files];
-                    newFiles.splice(index, 1);
-                    setFiles(newFiles);
-                    
-                    const newPreviews = [...previews];
-                    URL.revokeObjectURL(newPreviews[index]);
-                    newPreviews.splice(index, 1);
-                    setPreviews(newPreviews);
-                  }}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-
-      <div>
-        <label className="block text-black text-sm font-medium">Content</label>
-        <textarea
-          value={formData.body}
-          onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-          rows={6}
-          className="mt-1 block w-full text-black rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-          required
-        />
+      
+      <div className="pt-4 flex justify-end space-x-3">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? 'Saving...' : (initialData?.title ? 'Update Blog' : 'Save Blog')}
+        </button>
       </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Meta Tags</label>
-        <input
-          type="text"
-          value={tagInput}
-    onChange={handleMetaTagsChange}
-          placeholder="tag1, tag2, tag3"
-          className="mt-1 block w-full rounded-md border text-black border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Author</label>
-        <input
-          type="text"
-          value={formData.author}
-          onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-          className="mt-1 block w-full rounded-md border text-black border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-          required
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-      >
-        {loading ? 'Saving...' : 'Save Blog'}
-      </button>
     </form>
   );
 };

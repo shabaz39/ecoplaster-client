@@ -229,7 +229,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isMobile = false, onClose }) => {
   }, [query, debouncedSearch]);
 
   const handleProductClick = (productId: string) => {
-    router.push(`/product/${productId}`);
+    router.push(`/productDescription/${productId}`);
     setShowResults(false);
     setQuery("");
     if (onClose) onClose();
@@ -311,7 +311,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ isMobile = false, onClose }) => {
           <ul className="space-y-2">
             <li className="flex items-center gap-2">
               <Search className="w-4 h-4 text-gray-500" />
-              <span>Type a product name like "Cotton Curtain"</span>
+              <span>Type a product name to search</span>
             </li>
             <li className="flex items-center gap-2">
               <Hash className="w-4 h-4 text-gray-500" />

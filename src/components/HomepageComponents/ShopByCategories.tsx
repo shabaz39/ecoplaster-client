@@ -8,14 +8,14 @@ import { useRouter } from "next/navigation"; // ✅ Import router
 import { GET_SERIES_PRODUCTS } from "../../constants/queries/productQueries";
 
 const categories = [
-  { name: "Silk", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157056/ecoplaster-revised-images/EP_416/mxdsxluzecjq1fidk3r0.webp" },
-  { name: "Gold", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198412/ecoplaster-revised-images/EP_818/x95xo8we18reudast1yu.webp" },
-  { name: "Chips", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198466/ecoplaster-revised-images/EP_381/lltwftxklauy89bdk1xs.webp" },
-  { name: "Dual", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198495/ecoplaster-revised-images/EP_231/qxtq4lpeeidteijquvuf.webp" },
-  { name: "Cotton", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901757/Product_01_kre6je.webp" },
-  { name: "Cotton & Silk", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745154978/ecoplaster-revised-images/CS7/jvoxxlih7acktejlbjwq.webp" },
-  { name: "Glitter", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157106/ecoplaster-revised-images/G_1/uxdscr56cuivcu4sjvba.webp" },
-  { name: "Multi-Color", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157022/ecoplaster-revised-images/MC_9/eosllbtbahgvqu3ztd8f.webp" }
+  { name: "SILK", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157056/ecoplaster-revised-images/EP_416/mxdsxluzecjq1fidk3r0.webp" },
+  { name: "GOLD", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198412/ecoplaster-revised-images/EP_818/x95xo8we18reudast1yu.webp" },
+  { name: "CHIPS", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198466/ecoplaster-revised-images/EP_381/lltwftxklauy89bdk1xs.webp" },
+  { name: "DUAL", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198495/ecoplaster-revised-images/EP_231/qxtq4lpeeidteijquvuf.webp" },
+  { name: "COTTON", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901757/Product_01_kre6je.webp" },
+  { name: "COTTON & SILK", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745154978/ecoplaster-revised-images/CS7/jvoxxlih7acktejlbjwq.webp" },
+  { name: "GLITTER", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157106/ecoplaster-revised-images/G_1/uxdscr56cuivcu4sjvba.webp" },
+  { name: "MULTI COLOR", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157022/ecoplaster-revised-images/MC_9/eosllbtbahgvqu3ztd8f.webp" }
 ];
 
 const fallbackImages = [

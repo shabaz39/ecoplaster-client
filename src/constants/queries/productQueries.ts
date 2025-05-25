@@ -27,15 +27,37 @@ export const GET_PRODUCTS = gql`
 `;
 
 export const GET_SERIES_PRODUCTS = gql`
-  query GetSeriesProducts($series: String!) {
-    getSeriesProducts(series: $series) {
-      id
-      name
-      images {
-        imageMain
-      }
+ query GetSeriesProducts($series: String!) {
+  getSeriesProducts(series: $series) {
+    id
+    name
+    code
+    color
+    fabric
+    price {
+      mrp
+      offerPrice
     }
+    series
+    finish
+    images {
+      imageMain
+      imageArtTable
+      imageWall
+      imageBedroom
+      imageRoom
+      imageLivingRoom
+      imageSecondLivingRoom
+    }
+    searchKeywords
+    searchScore
+    slug
+    url
+    createdAt
+    updatedAt
+    lastSearched
   }
+}
 `;
 
 export const GET_PRODUCT_BY_ID = gql`
@@ -59,6 +81,7 @@ export const GET_PRODUCT_BY_ID = gql`
         imageBedroom
         imageRoom
         imageLivingRoom
+        imageSecondLivingRoom 
       }
     }
   }
@@ -87,6 +110,7 @@ export const FILTER_PRODUCTS = gql`
       imageBedroom
       imageRoom
       imageLivingRoom
+      imageSecondLivingRoom 
     }
   }
 }
@@ -102,7 +126,6 @@ export const GET_PRODUCT_ATTRIBUTES = gql`
     getUniqueFinishes
   }
 `;
- 
 
 export const SEARCH_PRODUCTS = gql`
   query SearchProducts($query: String!, $limit: Int) {
@@ -146,6 +169,7 @@ export const ADD_PRODUCT = gql`
         imageBedroom
         imageRoom
         imageLivingRoom
+        imageSecondLivingRoom 
       }
     }
   }
@@ -172,6 +196,7 @@ export const UPDATE_PRODUCT = gql`
         imageBedroom
         imageRoom
         imageLivingRoom
+        imageSecondLivingRoom 
       }
     }
   }

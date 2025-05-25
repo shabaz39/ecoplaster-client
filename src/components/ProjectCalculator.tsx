@@ -58,7 +58,9 @@ const ProjectCalculator: React.FC = () => {
   
   // Calculate area
   const calculateArea = () => {
+    // Check if all dimensions are filled
     if (!length || !width || !height) {
+      alert("Please fill in all dimensions (length, width, and height) before calculating.");
       setShowResults(false);
       return;
     }
@@ -68,18 +70,24 @@ const ProjectCalculator: React.FC = () => {
     const widthNum = parseFloat(width);
     const heightNum = parseFloat(height);
     
+    // Validate inputs are actual numbers
     if (isNaN(lengthNum) || isNaN(widthNum) || isNaN(heightNum)) {
+      alert("Please enter valid numbers for all dimensions.");
       setShowResults(false);
       return;
     }
     
-    // Calculate perimeter
-    const perimeter = 2 * (lengthNum + widthNum);
+    // Calculate wall areas separately for clarity
+    // For a rectangular room with 4 walls
+    const wall1Area = lengthNum * heightNum; // Front wall
+    const wall2Area = widthNum * heightNum;  // Right wall
+    const wall3Area = lengthNum * heightNum; // Back wall (same as front)
+    const wall4Area = widthNum * heightNum;  // Left wall (same as right)
     
-    // Calculate total wall area
-    const totalWallArea = perimeter * heightNum;
+    // Total area of all 4 walls
+    const totalWallArea = wall1Area + wall2Area + wall3Area + wall4Area;
     
-    // Calculate area in square feet
+    // Convert to square feet if using different units
     const wallAreaSqFt = totalWallArea * conversionFactors[unit as keyof typeof conversionFactors];
     setWallArea(wallAreaSqFt);
     
@@ -105,8 +113,8 @@ const ProjectCalculator: React.FC = () => {
     const netArea = Math.max(0, wallAreaSqFt - totalOpeningArea);
     setNetWallArea(netArea);
     
-    // Calculate required packets (1 packet per 40 sq ft)
-    const packets = Math.ceil(netArea / 40);
+    // Calculate required packets (1 packet per 45 sq ft)
+    const packets = Math.ceil(netArea / 45);
     setRequiredPackets(packets);
     
     setShowResults(true);
@@ -139,6 +147,25 @@ const ProjectCalculator: React.FC = () => {
             This calculator helps you estimate how much EcoPlaster you'll need for your project. 
             Enter your room dimensions and any openings (doors, windows) to get an accurate estimate.
           </p>
+          <div className="mt-3 p-3 bg-white rounded-md">
+            <h3 className="font-semibold text-gray-800 mb-2">How The Calculator Works:</h3>
+            <p className="text-gray-700 mb-2">This calculator measures the total area of <strong>all four walls</strong> in a rectangular room, then subtracts any openings (doors and windows).</p>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+              <div className="bg-gray-100 p-2 rounded text-sm">
+                <strong>Example:</strong> For a 10ft × 10ft room with 8ft ceiling height:
+              </div>
+              <ul className="list-disc pl-6 text-sm text-gray-700">
+                <li>Front wall: 10ft × 8ft = 80 sq ft</li>
+                <li>Right wall: 10ft × 8ft = 80 sq ft</li>
+                <li>Back wall: 10ft × 8ft = 80 sq ft</li>
+                <li>Left wall: 10ft × 8ft = 80 sq ft</li>
+                <li><strong>Total wall area:</strong> 320 sq ft</li>
+              </ul>
+            </div>
+            
+            <p className="text-gray-700 text-sm mt-1">After subtracting openings like doors and windows, the calculator determines how many EcoPlaster packets you'll need (1 packet covers 45 sq ft).</p>
+          </div>
         </div>
         
         <div className="mb-6">
@@ -323,13 +350,49 @@ const ProjectCalculator: React.FC = () => {
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
           <div className="flex justify-between items-start print:hidden mb-4">
             <h2 className="text-xl font-bold text-gray-800">Results</h2>
-            <button
-              onClick={printResults}
-              className="text-gray-600 hover:text-gray-800 flex items-center gap-1"
-            >
-              <Printer size={16} />
-              <span className="text-sm">Print</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => document.getElementById('calculation-details')?.classList.toggle('hidden')}
+                className="text-blue-600 hover:text-blue-800 text-sm underline"
+              >
+                View Calculation Details
+              </button>
+              <button
+                onClick={printResults}
+                className="text-gray-600 hover:text-gray-800 flex items-center gap-1"
+              >
+                <Printer size={16} />
+                <span className="text-sm">Print</span>
+              </button>
+            </div>
+          </div>
+          
+          <div id="calculation-details" className="hidden mb-4 p-3 bg-gray-100 rounded-md text-sm">
+            <h3 className="font-semibold mb-2">Detailed Wall Area Calculation:</h3>
+            <ul className="space-y-1 text-gray-700">
+              <li>• Front wall: {length} × {height} = {(parseFloat(length) * parseFloat(height)).toFixed(2)} sq {unit}</li>
+              <li>• Right wall: {width} × {height} = {(parseFloat(width) * parseFloat(height)).toFixed(2)} sq {unit}</li>
+              <li>• Back wall: {length} × {height} = {(parseFloat(length) * parseFloat(height)).toFixed(2)} sq {unit}</li>
+              <li>• Left wall: {width} × {height} = {(parseFloat(width) * parseFloat(height)).toFixed(2)} sq {unit}</li>
+              <li className="font-medium">• Total wall area: {wallArea.toFixed(2)} sq ft</li>
+              {openings.length > 0 && (
+                <>
+                  <li className="mt-2 font-semibold">Openings:</li>
+                  {openings.map((opening, index) => (
+                    opening.width && opening.height ? (
+                      <li key={index}>
+                        • {opening.type} #{index + 1}: {opening.width} × {opening.height} × {opening.quantity} = 
+                        {(parseFloat(opening.width) * parseFloat(opening.height) * parseInt(opening.quantity) * 
+                          conversionFactors[unit as keyof typeof conversionFactors]).toFixed(2)} sq ft
+                      </li>
+                    ) : null
+                  ))}
+                </>
+              )}
+              <li className="mt-2">• Total opening area: {openingArea.toFixed(2)} sq ft</li>
+              <li className="font-medium">• Net wall area: {wallArea.toFixed(2)} - {openingArea.toFixed(2)} = {netWallArea.toFixed(2)} sq ft</li>
+              <li className="mt-2">• Required packets: {netWallArea.toFixed(2)} ÷ 45 = {(netWallArea / 45).toFixed(2)}, rounded up to {requiredPackets}</li>
+            </ul>
           </div>
           
           <div className="hidden print:block mb-6">
@@ -340,7 +403,11 @@ const ProjectCalculator: React.FC = () => {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="text-gray-600">Total Wall Area:</span>
+                <span className="text-gray-600">Room Dimensions:</span>
+                <span className="font-medium">{length} × {width} × {height} {unit}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-gray-200">
+                <span className="text-gray-600">Total Wall Area (all 4 walls):</span>
                 <span className="font-medium">{wallArea.toFixed(2)} sq ft</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-200">
@@ -365,7 +432,7 @@ const ProjectCalculator: React.FC = () => {
             </div>
             
             <div className="text-sm text-gray-500 print:mt-12">
-              <p className="mb-1">Note: This is an estimate based on standard calculations (1 packet covers 40 sq ft). Actual coverage may vary based on surface conditions, application technique, and desired finish thickness.</p>
+              <p className="mb-1">Note: This is an estimate based on standard calculations (1 packet covers 45 sq ft). Actual coverage may vary based on surface conditions, application technique, and desired finish thickness.</p>
               <p>For exact requirements, consult with your EcoPlaster dealer.</p>
             </div>
           </div>

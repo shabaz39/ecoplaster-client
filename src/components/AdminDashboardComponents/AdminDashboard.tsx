@@ -76,62 +76,130 @@ const AdminDashboard: React.FC = () => {
 
   const handleCreateBlog = async (formData: BlogFormData, files: File[]) => {
     try {
+      console.log("Creating blog with data:", formData);
+      console.log("Files:", files);
+      
       if (!files.length) {
         alert("Please select at least one image");
         return;
       }
-  
+    
+      // Create new File objects to ensure they're properly serialized
       const uploadFiles = files.map(file => new File(
         [file],
         file.name,
         { type: file.type, lastModified: new Date().getTime() }
       ));
-  
+    
+      console.log("Calling createBlog mutation with:", {
+        input: {
+          ...formData,
+          metaTags: formData.metaTags  // Already an array from BlogForm
+        },
+        files: uploadFiles
+      });
+    
       const { data } = await createBlog({
         variables: {
           input: {
             ...formData,
-            // No need to split since formData.metaTags is already an array
-            metaTags: formData.metaTags,
-            published: false
+            metaTags: formData.metaTags
           },
           files: uploadFiles
         }
       });
-  
+    
+      console.log("Create blog response:", data);
+    
       if (data?.createBlog) {
         alert("Blog created successfully!");
         setShowBlogForm(false);
         refetchBlogs();
+      } else {
+        console.error("No data returned from createBlog mutation");
+        alert("Failed to create blog: No response from server");
       }
     } catch (error: any) {
       console.error("Error creating blog:", error);
-      alert(`Failed to create blog: ${error.message}`);
+      
+      // Extract more useful error information
+      let errorMessage = "Failed to create blog";
+      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+        errorMessage += ": " + error.graphQLErrors.map((e: any) => e.message).join(", ");
+      } else if (error.networkError) {
+        errorMessage += ": Network error - " + error.networkError.message;
+      } else if (error.message) {
+        errorMessage += ": " + error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
-
+  
   const handleUpdateBlog = async (formData: BlogFormData, files: File[]) => {
     if (!editingBlog) return;
+    
     try {
-      await updateBlog({
+      console.log("Updating blog with data:", formData);
+      console.log("Files:", files);
+      
+      // Create file objects for upload
+      const uploadFiles = files.length > 0 
+        ? files.map(file => new File(
+            [file],
+            file.name,
+            { type: file.type, lastModified: new Date().getTime() }
+          ))
+        : [];
+      
+      console.log("Calling updateBlog mutation with:", {
+        id: editingBlog.id,
+        input: {
+          ...formData,
+          metaTags: formData.metaTags  // Already an array from BlogForm
+        },
+        files: uploadFiles.length > 0 ? uploadFiles : undefined
+      });
+      
+      const { data } = await updateBlog({
         variables: {
           id: editingBlog.id,
           input: {
             ...formData,
-            // No need to split since formData.metaTags is already an array
             metaTags: formData.metaTags
           },
-          files: files.length > 0 ? files : undefined
+          files: uploadFiles.length > 0 ? uploadFiles : undefined
         }
       });
-      setEditingBlog(null);
-      setShowBlogForm(false);
-      refetchBlogs();
-    } catch (error) {
-      console.error('Error updating blog:', error);
-      alert('Failed to update blog');
+      
+      console.log("Update blog response:", data);
+      
+      if (data?.updateBlog) {
+        alert("Blog updated successfully!");
+        setEditingBlog(null);
+        setShowBlogForm(false);
+        refetchBlogs();
+      } else {
+        console.error("No data returned from updateBlog mutation");
+        alert("Failed to update blog: No response from server");
+      }
+    } catch (error: any) {
+      console.error("Error updating blog:", error);
+      
+      // Extract more useful error information
+      let errorMessage = "Failed to update blog";
+      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+        errorMessage += ": " + error.graphQLErrors.map((e: any) => e.message).join(", ");
+      } else if (error.networkError) {
+        errorMessage += ": Network error - " + error.networkError.message;
+      } else if (error.message) {
+        errorMessage += ": " + error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
+  
 
   const handleDeleteBlog = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this blog?')) return;

@@ -1,6 +1,6 @@
-// components/AdminDashboardComponents/PromotionManagement/PromotionManagement.tsx
+// Enhanced PromotionManagement component with proper date handling
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, gql } from '@apollo/client';
 import { 
   GET_ALL_PROMOTIONS, 
   CREATE_PROMOTION, 
@@ -11,12 +11,33 @@ import LoadingSpinner from '../Common/LoadingSpinner';
 import PromotionForm from './PromotionForm';
 import { toast } from 'react-toastify';
 
+// New query for usage stats
+const GET_PROMOTION_USAGE_STATS = gql`
+  query GetPromotionUsageStats($id: ID!) {
+    getPromotionUsageStats(id: $id) {
+      totalUses
+      maximumUses
+      usagePercentage
+      totalDiscountGiven
+      uniqueUsers
+      recentUsages {
+        userId
+        orderId
+        usedAt
+        discountApplied
+        orderTotal
+      }
+    }
+  }
+`;
+
 interface Promotion {
   id: string;
   title: string;
   description: string;
   discountValue: number;
   discountType: 'PERCENTAGE' | 'FIXED';
+  scope: 'ORDER' | 'PRODUCT';
   code: string;
   startDate: string;
   endDate: string;
@@ -24,6 +45,7 @@ interface Promotion {
   applicableProducts: string[];
   minimumPurchase: number;
   maximumUses: number;
+  maxUsesPerUser: number;
   usesCount: number;
   createdAt: string;
   updatedAt: string;
@@ -32,12 +54,18 @@ interface Promotion {
 const PromotionManagement: React.FC = () => {
   const [showPromotionForm, setShowPromotionForm] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [selectedPromotionStats, setSelectedPromotionStats] = useState<string | null>(null);
 
   // GraphQL queries and mutations
   const { data, loading, error, refetch } = useQuery(GET_ALL_PROMOTIONS, {
     onError: (error) => {
       console.error('Detail error:', error);
     }
+  });
+
+  const { data: usageStatsData, loading: statsLoading } = useQuery(GET_PROMOTION_USAGE_STATS, {
+    variables: { id: selectedPromotionStats },
+    skip: !selectedPromotionStats
   });
   
   const [createPromotion, { loading: createLoading }] = useMutation(CREATE_PROMOTION, {
@@ -130,21 +158,43 @@ const PromotionManagement: React.FC = () => {
     }
   };
 
-  // Convert numeric timestamp string to Date
-  const parseDate = (dateString: string): Date => {
-    // If it's a numeric string (timestamp), convert it
-    if (/^\d+$/.test(dateString)) {
-      return new Date(parseInt(dateString));
+  // Enhanced date parsing function
+  const parseDate = (dateString: string | number | Date): Date => {
+    if (!dateString) return new Date();
+    
+    // If it's already a Date object
+    if (dateString instanceof Date) {
+      return dateString;
     }
-    // Otherwise try to parse it as a regular date string
-    return new Date(dateString);
+    
+    // If it's a numeric timestamp
+    if (typeof dateString === 'number') {
+      return new Date(dateString);
+    }
+    
+    // If it's a string
+    if (typeof dateString === 'string') {
+      // Check if it's a numeric string (timestamp)
+      if (/^\d+$/.test(dateString)) {
+        return new Date(parseInt(dateString, 10));
+      }
+      
+      // Try to parse as ISO string or other date format
+      const parsed = new Date(dateString);
+      if (!isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    
+    console.warn('Unable to parse date:', dateString);
+    return new Date();
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | number | Date) => {
     try {
       const date = parseDate(dateString);
       if (isNaN(date.getTime())) {
-        console.error('Invalid date string:', dateString);
+        console.error('Invalid date:', dateString);
         return 'Invalid Date';
       }
       return date.toLocaleDateString('en-US', {
@@ -169,6 +219,21 @@ const PromotionManagement: React.FC = () => {
       console.error('Error checking if promotion is active:', error);
       return false;
     }
+  };
+
+  const getUsagePercentage = (promotion: Promotion) => {
+    if (promotion.maximumUses === 0) return 0; // Unlimited
+    return (promotion.usesCount / promotion.maximumUses) * 100;
+  };
+
+  const getScopeLabel = (scope: string) => {
+    return scope === 'PRODUCT' ? 'Product Level' : 'Order Level';
+  };
+
+  const getScopeBadgeClass = (scope: string) => {
+    return scope === 'PRODUCT' 
+      ? 'bg-purple-100 text-purple-800'
+      : 'bg-blue-100 text-blue-800';
   };
 
   if (loading) return <LoadingSpinner />;
@@ -200,11 +265,123 @@ const PromotionManagement: React.FC = () => {
             onSubmit={editingPromotion ? handleUpdatePromotion : handleCreatePromotion}
             initialData={editingPromotion ? {
               ...editingPromotion,
-              // Convert timestamp strings to actual Date objects for the form
-              startDate: new Date(parseInt(editingPromotion.startDate)).toISOString().split('T')[0],
-              endDate: new Date(parseInt(editingPromotion.endDate)).toISOString().split('T')[0]
+              // Convert dates for form (YYYY-MM-DD format)
+              startDate: (() => {
+                try {
+                  const date = parseDate(editingPromotion.startDate);
+                  return date.toISOString().split('T')[0];
+                } catch {
+                  return '';
+                }
+              })(),
+              endDate: (() => {
+                try {
+                  const date = parseDate(editingPromotion.endDate);
+                  return date.toISOString().split('T')[0];
+                } catch {
+                  return '';
+                }
+              })(),
+              // Ensure numeric fields are properly converted
+              discountValue: Number(editingPromotion.discountValue) || 0,
+              minimumPurchase: Number(editingPromotion.minimumPurchase) || 0,
+              maximumUses: Number(editingPromotion.maximumUses) || 0,
+              maxUsesPerUser: Number(editingPromotion.maxUsesPerUser) || 0,
             } : undefined}
           />
+        </div>
+      )}
+
+      {/* Usage Statistics Modal */}
+      {selectedPromotionStats && usageStatsData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Usage Statistics</h3>
+              <button 
+                onClick={() => setSelectedPromotionStats(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {statsLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800">Total Uses</h4>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {usageStatsData.getPromotionUsageStats.totalUses}
+                      {usageStatsData.getPromotionUsageStats.maximumUses > 0 && 
+                        `/${usageStatsData.getPromotionUsageStats.maximumUses}`
+                      }
+                    </p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-green-800">Total Discount Given</h4>
+                    <p className="text-2xl font-bold text-green-900">
+                      ₹{usageStatsData.getPromotionUsageStats.totalDiscountGiven.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-purple-800">Unique Users</h4>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {usageStatsData.getPromotionUsageStats.uniqueUsers}
+                    </p>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-orange-800">Usage Rate</h4>
+                    <p className="text-2xl font-bold text-orange-900">
+                      {usageStatsData.getPromotionUsageStats.usagePercentage.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Recent Usage */}
+                <div>
+                  <h4 className="text-lg font-medium mb-3">Recent Usage</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount Applied</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order Total</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Used At</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {usageStatsData.getPromotionUsageStats.recentUsages.map((usage: any, index: number) => (
+                          <tr key={index}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {usage.userId.slice(-8)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {usage.orderId.slice(-8)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                              ₹{usage.discountApplied.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              ₹{usage.orderTotal.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(usage.usedAt)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -221,9 +398,10 @@ const PromotionManagement: React.FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scope</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uses</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage</th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -250,6 +428,11 @@ const PromotionManagement: React.FC = () => {
                           Min: ₹{promotion.minimumPurchase}
                         </div>
                       )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getScopeBadgeClass(promotion.scope)}`}>
+                        {getScopeLabel(promotion.scope)}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
@@ -286,8 +469,28 @@ const PromotionManagement: React.FC = () => {
                           <span className="text-gray-500">/{promotion.maximumUses}</span>
                         )}
                       </div>
+                      {promotion.maxUsesPerUser > 0 && (
+                        <div className="text-xs text-gray-500">
+                          Max {promotion.maxUsesPerUser}/user
+                        </div>
+                      )}
+                      {promotion.maximumUses > 0 && (
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                          <div 
+                            className="bg-green-600 h-1.5 rounded-full" 
+                            style={{ width: `${Math.min(getUsagePercentage(promotion), 100)}%` }}
+                          ></div>
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => setSelectedPromotionStats(promotion.id)}
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        disabled={deleteLoading}
+                      >
+                        Stats
+                      </button>
                       <button
                         onClick={() => {
                           setEditingPromotion(promotion);

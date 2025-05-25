@@ -135,7 +135,7 @@ export const ProductDescription = ({ productData = null }) => {
               <li><span className="text-gray-400 mx-1">/</span></li>
               <li><a href="/products" className="text-gray-500 hover:text-newgreen">Products</a></li>
               <li><span className="text-gray-400 mx-1">/</span></li>
-              <li><a href={`/products/${product.series.toLowerCase().replace(' ', '-')}`} className="text-gray-500 hover:text-newgreen">{product.series}</a></li>
+              <li><a href={`/productDescription/${product.series.toLowerCase().replace(' ', '-')}`} className="text-gray-500 hover:text-newgreen">{product.series}</a></li>
               <li><span className="text-gray-400 mx-1">/</span></li>
               <li className="text-newgreen font-medium">{product.code}</li>
             </ol>

@@ -135,7 +135,8 @@ const BulkUploadForm: React.FC<BulkUploadFormProps> = ({ onSubmit, onCancel }) =
       imageWall: '',
       imageBedroom: '',
       imageRoom: '',
-      imageLivingRoom: ''
+      imageLivingRoom: '',
+      imageSecondLivingRoom: ''
     };
     
     // Create CSV content

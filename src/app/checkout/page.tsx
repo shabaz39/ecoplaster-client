@@ -7,12 +7,13 @@ import CategoriesSection from '@/components/HomepageComponents/ShopByCategories'
 import FAQPage from '@/components/FAQComponents/Faqpage';
 import ContactUs from '@/components/ContactUsComponents/contactUs';
 import Footer from '@/components/HomepageComponents/Footer';
+import AnnouncementBanner from '@/components/HomepageComponents/AnnouncementBanner';
 
 const CheckOut = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+      <AnnouncementBanner/>
       {/* Main content with proper spacing */}
       <main className="flex-grow">
         <div>

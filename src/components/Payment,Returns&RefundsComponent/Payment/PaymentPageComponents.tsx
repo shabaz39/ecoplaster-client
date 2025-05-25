@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
-import { useMutation, useLazyQuery, useQuery, gql } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { 
   CREATE_PAYMENT_ORDER,
-  VERIFY_PAYMENT,
   HANDLE_PAYMENT_FAILURE
 } from "../../../constants/queries/paymentQueries";
 import {
-  VERIFY_PAYMENT_AND_CONFIRM_ORDER
+  VERIFY_PAYMENT_AND_CONFIRM_ORDER,
+  GET_PAYMENT_INTENT
 } from "../../../constants/queries/paymentIntentQueries";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentStatusBanner } from "./PaymentStatusBanner";
@@ -18,14 +18,12 @@ import { PaymentMethods } from "./PaymentMethods";
 import { ArrowLeft, CreditCard, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
-import { GET_PAYMENT_INTENT } from "../../../constants/queries/paymentIntentQueries";
 
 declare global {
   interface Window {
     Razorpay: any;
   }
 }
- 
 
 interface PaymentPageProps {
   intentId: string;
@@ -36,38 +34,32 @@ interface IntentOrderSummaryData {
   id: string;
   products: Array<{
       productId: string;
-      name: string; // Will be a placeholder
+      name: string;
       quantity: number;
       price: number;
-      image?: string; // Will be undefined
-      code?: string; // Will be undefined
+      image?: string;
   }>;
-  shippingAddress: any; // Use 'any' or define Address type from intent schema
+  shippingAddress: any;
   totalAmount: number;
-  status: string; // Intent status
+  status: string;
 }
 
 const PaymentPage: React.FC<PaymentPageProps> = ({ intentId }) => {
-   
-
   const router = useRouter();
-  const { clearCart } = useCart();
-  const { data: session } = useSession();
+   const { data: session } = useSession();
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
+  const { clearCart, appliedPromotion } = useCart();
 
   console.log("PaymentPage initialized with intentId:", intentId);
 
-  const [orderSummaryData, setOrderSummaryData] = useState<IntentOrderSummaryData | null>(null);
-
   // Get payment intent data
-  const { data: intentData, loading: intentLoading, error: intentError } =  useQuery(GET_PAYMENT_INTENT, {
+  const { data: intentData, loading: intentLoading, error: intentError } = useQuery(GET_PAYMENT_INTENT, {
     variables: { id: intentId },
     fetchPolicy: "network-only",
     skip: !intentId,
-
     onCompleted: (data) => {
       console.log("Payment intent data loaded:", data?.getPaymentIntent);
       
@@ -96,7 +88,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ intentId }) => {
     }
   });
 
-  // Verify payment and confirm order mutation (new)
+  // Verify payment and confirm order mutation
   const [verifyPaymentAndConfirmOrder, { loading: verifyingAndConfirming }] = useMutation(VERIFY_PAYMENT_AND_CONFIRM_ORDER, {
     onCompleted: (data) => {
       console.log("Payment verified and order confirmed:", data);
@@ -156,23 +148,17 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ intentId }) => {
       const intent = intentData.getPaymentIntent;
       
       console.log("Creating payment order for intent:", intent.id);
-
-      console.log("Intent data available:", !!intentData?.getPaymentIntent);
-console.log("Session user ID:", session?.user?.id);
-console.log("Intent user ID:", intent.userId);
-console.log("Intent total amount:", intent.totalAmount);
       
       // Create Razorpay order
       const { data: paymentOrderData } = await createPaymentOrder({
         variables: {
           input: {
-            intentId: intent.id, // Use a temporary orderId 
+            intentId: intent.id,
             userId: session?.user?.id || intent.userId,
             amount: intent.totalAmount,
             currency: "INR",
             notes: {
               intentId: intent.id,
-              // Add any other relevant info
             }
           }
         }
@@ -280,6 +266,27 @@ console.log("Intent total amount:", intent.totalAmount);
         
         // Clear cart after successful payment
         clearCart();
+
+         // ---- ADD PROMOTION USAGE LOCALSTORAGE LOGIC HERE ----
+      // Get promo code used and discount info from the current session/cart/context.
+     // Let's assume your context gives promoCode and promoMetaData
+// ---- ADD PROMOTION USAGE LOCALSTORAGE LOGIC HERE ----
+if (appliedPromotion && appliedPromotion.promotionApplied && appliedPromotion.promotionApplied.id) {
+  localStorage.setItem(
+    'pendingPromotionUsage',
+    JSON.stringify({
+      promotionId: appliedPromotion.promotionApplied.id,
+      userId: session?.user?.id, // from next-auth
+      orderId: data.verifyPaymentAndConfirmOrder.orderId,
+      discountApplied: appliedPromotion.totalDiscount,
+      orderTotal: intent.totalAmount // or orderForSummary.totalAmount
+    })
+  );
+}
+// ------------------------------------------------------
+
+
+      // ------------------------------------------------------
         
         // Save last order ID for reference
         if (typeof window !== 'undefined') {
@@ -333,16 +340,21 @@ console.log("Intent total amount:", intent.totalAmount);
   }
 
   const intent = intentData.getPaymentIntent;
+  
   // Create a compatible order object for OrderSummary component
-  const orderForSummary = {
+  // Handle possible missing or incomplete data safely
+  const orderForSummary: IntentOrderSummaryData = {
     id: intent.id,
-    products: intent.products.map((p:any) => ({ // <<< ERROR HAPPENS HERE
-      ...p,
-      name: p.name || `Product #${p.productId.slice(-6)}`, // Fallback name if missing
-    })),
-    shippingAddress: intent.shippingAddress,
-    totalAmount: intent.totalAmount,
-    status: intent.status
+    products: Array.isArray(intent.products) ? intent.products.map((p: any) => ({
+      productId: p.productId || "unknown",
+      name: p.name || `Product #${(p.productId || "unknown").slice(-6)}`,
+      quantity: p.quantity || 1,
+      price: p.price || 0,
+      image: p.image
+    })) : [],
+    shippingAddress: intent.shippingAddress || {},
+    totalAmount: intent.totalAmount || 0,
+    status: intent.status || "unknown"
   };
 
   return (

@@ -1,11 +1,12 @@
-import { Document } from 'mongoose';
+// file: types/blog.types.ts
 
 export interface Image {
   imageUrl: string;
   imageId: string;
 }
 
-export interface IBlog extends Document {
+export interface IBlog {
+  id: string;
   title: string;
   mainImage?: Image;
   body: string;
@@ -15,50 +16,34 @@ export interface IBlog extends Document {
   published: boolean;
   slug?: string;
   url?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface BlogInput {
-  title: string;
-  body: string;
-  metaTags: string[];
-  author: string;
-  published?: boolean;
-}
-
-export interface FileUpload {
-  filename: string;
-  mimetype: string;
-  encoding: string;
-  createReadStream: () => NodeJS.ReadableStream;
-}
-
-export interface CreateBlogArgs {
-  input: BlogInput;
-  files: Promise<FileUpload>[];
-}
-
-export interface UpdateBlogArgs {
-  id: string;
-  input: Partial<BlogInput>;
-  files?: Promise<FileUpload>[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BlogFormData {
   title: string;
   body: string;
-  metaTags: string[]; // Change from string to string[]
+  metaTags: string[];
   author: string;
 }
 
-export interface BlogFile extends File {
-    preview?: string;
-  }
+export interface CreateBlogArgs {
+  input: {
+    title: string;
+    body: string;
+    metaTags: string[] | string; // Handle both string and array
+    author: string;
+  };
+  files: any[]; // GraphQLUpload files
+}
 
-export interface BlogState {
-  blogs: IBlog[];
-  loading: boolean;
-  error: string | null;
-  currentBlog: IBlog | null;
+export interface UpdateBlogArgs {
+  id: string;
+  input: {
+    title?: string;
+    body?: string;
+    metaTags?: string[] | string; // Handle both string and array
+    author?: string;
+  };
+  files?: any[]; // GraphQLUpload files (optional for update)
 }

@@ -232,7 +232,7 @@ const InstallationGuide = () => {
               <Download size={20} />
               Download PDF Guide
             </button> */}
-            <Link href="https://www.youtube.com/shorts/h3lCsmHZz70" >
+            <Link href="https://res.cloudinary.com/djzmj5oqp/video/upload/v1748158343/xso18jynndv8tvdvmfmn.mp4" >
             <button className="bg-newgreen text-white px-6 py-3 rounded-lg font-bold hover:bg-green-800 transition-colors flex items-center gap-2">
               <PlayCircle size={20} />
               Watch Video Tutorial

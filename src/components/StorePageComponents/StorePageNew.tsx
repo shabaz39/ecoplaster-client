@@ -6,6 +6,7 @@ import { useQuery } from '@apollo/client';
 import { GET_ACTIVE_STORES } from '@/constants/queries/storeQueries';
 import { MapPin, Phone, Star, Clock, ExternalLink } from 'lucide-react';
 import LoadingSpinner from '../AdminDashboardComponents/Common/LoadingSpinner';
+import Image from 'next/image';
  
 const StoresPageNew: React.FC = () => {
   const { data, loading, error } = useQuery(GET_ACTIVE_STORES);
@@ -70,10 +71,16 @@ const StoresPageNew: React.FC = () => {
             {stores.map((store:any) => (
               <div key={store.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                 {/* Store letter banner */}
-                <div className={`w-full h-48 ${getBackgroundColor(store.city)} flex items-center justify-center`}>
-                  <span className="text-white text-8xl font-bold">
-                    {getInitials(store.city)}
-                  </span>
+                <div className={`w-full h-48 flex items-center justify-center`}>
+                  {/* <span className="text-white text-8xl font-bold">
+                    {(store.icon)}
+                  </span> */}
+                   <Image
+      src={store.icon}
+      width={250}
+      height={200}
+      alt="Picture of the author"
+    />
                 </div>
                 <div className="p-6">
                   <h2 className="text-xl font-bold text-productNameColor mb-2">

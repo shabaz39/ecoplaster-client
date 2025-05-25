@@ -43,7 +43,19 @@ const categories = [
     links: [
     
       {
-        name: "Mission: Revolutionizing wall finishes with sustainable & innovative solutions.",
+        name: "Mission",
+        href: "/aboutus",
+      },
+      {
+        name: "Story",
+        href: "/aboutus",
+      },
+      {
+        name: "Technology",
+        href: "/aboutus",
+      },
+      {
+        name: "Awards and Recognition",
         href: "/aboutus",
       },
     ],
@@ -74,6 +86,13 @@ const categories = [
       { name: "Srinagar, Jammu and Kashmir", href: "/stores" },
     ],
     route: "/stores",
+  },
+  {
+    name: "Installation Guide",
+    links: [
+      { name: "Easy Installation Guide", href: "/installationGuide" },
+    ],
+    route: "/installationGuide",
   },
 ];
 

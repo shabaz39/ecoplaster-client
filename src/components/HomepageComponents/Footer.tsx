@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
           </div>
           {/* Help */}
           <div className="flex-1 text-sm text-gray-300">
-            <p>Contact us at +91 94929 91123</p>
+            <p>Contact us at +91  87905 05042</p>
             <p className="mt-2">
               We are here to help you every day between 9:30 AM to 7:30 PM.
             </p>

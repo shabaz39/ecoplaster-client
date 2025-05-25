@@ -1,20 +1,37 @@
 "use client";
-
 import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 
-interface CartItem {
+// CartItem & Discount types
+export interface CartItem {
   id: string;
   name: string;
   price: number;
   originalPrice: number;
   quantity: number;
-  image?: string; // Add this line to include the image property as optional
-
+  image?: string;
 }
 
 interface ShippingAddress {
   zip: string;
   city: string;
+}
+
+export interface DiscountCalculation {
+  totalDiscount: number;
+  itemDiscounts: Array<{
+    productId: string;
+    originalPrice: number;
+    discountAmount: number;
+    finalPrice: number;
+    quantity: number;
+  }>;
+  promotionApplied: {
+    id: string;
+    code: string;
+    title: string;
+    discountType: "PERCENTAGE" | "FIXED";
+    scope: "ORDER" | "PRODUCT";
+  };
 }
 
 interface CartContextType {
@@ -27,13 +44,14 @@ interface CartContextType {
   triggerCartAnimation: () => void;
   shippingAddress: ShippingAddress;
   updateShippingAddress: (address: ShippingAddress) => void;
-  clearCart: () => void; // Add this line
+  clearCart: () => void;
 
+  // Promotion state
+  appliedPromotion: DiscountCalculation | null;
+  setAppliedPromotion: (promo: DiscountCalculation | null) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
-
-
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -47,115 +65,96 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
-    zip: '',
-    city: ''
-  });
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({ zip: '', city: '' });
+  const [appliedPromotion, setAppliedPromotion] = useState<DiscountCalculation | null>(null);
 
-  // Load cart and shipping address from localStorage on component mount
   useEffect(() => {
-    // Load cart items
     try {
       const savedCart = localStorage.getItem('cart');
       if (savedCart) {
         const parsedCart = JSON.parse(savedCart);
         setCartItems(parsedCart);
-        
-        // Update cart count based on loaded items
         const count = parsedCart.reduce((total: number, item: CartItem) => total + item.quantity, 0);
         setCartCount(count);
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
     }
-    
-    // Load shipping address
     try {
       const savedAddress = localStorage.getItem('shippingAddress');
-      if (savedAddress) {
-        setShippingAddress(JSON.parse(savedAddress));
-      }
+      if (savedAddress) setShippingAddress(JSON.parse(savedAddress));
     } catch (error) {
       console.error('Error loading shipping address from localStorage:', error);
     }
+    try {
+      const savedPromo = localStorage.getItem('appliedPromotion');
+      if (savedPromo) setAppliedPromotion(JSON.parse(savedPromo));
+    } catch (error) {
+      console.error('Error loading promo from localStorage:', error);
+    }
   }, []);
 
-  // Save cart to localStorage when it changes
+  useEffect(() => { localStorage.setItem('cart', JSON.stringify(cartItems)); }, [cartItems]);
+  useEffect(() => { localStorage.setItem('shippingAddress', JSON.stringify(shippingAddress)); }, [shippingAddress]);
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (appliedPromotion) localStorage.setItem('appliedPromotion', JSON.stringify(appliedPromotion));
+    else localStorage.removeItem('appliedPromotion');
+  }, [appliedPromotion]);
 
-  // Save shipping address to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('shippingAddress', JSON.stringify(shippingAddress));
-  }, [shippingAddress]);
+  const toggleCart = () => setIsCartOpen(prev => !prev);
 
-  const toggleCart = () => {
-    setIsCartOpen((prev) => !prev);
+  const clearCart = () => {
+    setCartItems([]);
+    setAppliedPromotion(null);
+    localStorage.removeItem('cart');
+    localStorage.removeItem('appliedPromotion');
   };
 
-  // Then in the CartContext provider component, implement the function:
-const clearCart = () => {
-  setCartItems([]);
-  // If you're storing cart in localStorage, also clear it from there
-  localStorage.removeItem('cartItems');
-};
-
   const addToCart = (product: CartItem, showSidebar: boolean = true) => {
-    setCartItems((prev) => {
-      const existingItem = prev.find((item) => item.id === product.id);
+    setCartItems(prev => {
+      const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
-        return prev.map((item) =>
-          item.id === product.id 
-        ? { ...item, quantity: item.quantity + product.quantity } // ADD quantities instead of replacing
-        : item
+        return prev.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + product.quantity }
+            : item
         );
       }
-      return [...prev, product]; // Add new item with specified quantity
+      return [...prev, product];
     });
-  
-    setCartCount((prev) => prev + product.quantity);
-    if (showSidebar) {
-      setIsCartOpen(true);
-    }
+    setCartCount(prev => prev + product.quantity);
+    if (showSidebar) setIsCartOpen(true);
   };
 
   const removeFromCart = (productId: string) => {
-    setCartItems((prev) => {
+    setCartItems(prev => {
       const updatedCart = prev
-        .map((item) =>
-          item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
-        )
-        .filter((item) => item.quantity > 0); // Remove items with 0 quantity
-
+        .map(item => item.id === productId ? { ...item, quantity: item.quantity - 1 } : item)
+        .filter(item => item.quantity > 0);
       return updatedCart;
     });
-
-    setCartCount((prev) => (prev > 0 ? prev - 1 : 0));
+    setCartCount(prev => (prev > 0 ? prev - 1 : 0));
   };
 
-  const updateShippingAddress = (address: ShippingAddress) => {
-    setShippingAddress(address);
-  };
+  const updateShippingAddress = (address: ShippingAddress) => setShippingAddress(address);
 
-  const triggerCartAnimation = () => {
-    // Animation logic (if needed)
-  };
+  const triggerCartAnimation = () => {};
 
   return (
-    <CartContext.Provider 
-      value={{ 
-        cartItems, 
-        cartCount, 
-        isCartOpen, 
-        toggleCart, 
-        addToCart, 
-        removeFromCart, 
+    <CartContext.Provider
+      value={{
+        cartItems,
+        cartCount,
+        isCartOpen,
+        toggleCart,
+        addToCart,
+        removeFromCart,
         triggerCartAnimation,
         shippingAddress,
         updateShippingAddress,
-        clearCart // Add this line
-
+        clearCart,
+        appliedPromotion,
+        setAppliedPromotion
       }}
     >
       {children}

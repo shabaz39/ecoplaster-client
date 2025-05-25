@@ -1,11 +1,33 @@
+// Updated PaymentSuccessPage with promotion usage recording
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Home, Package, ArrowRight } from "lucide-react";
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery, useMutation, gql } from "@apollo/client";
 import { GET_PAYMENT_BY_ORDER_ID, GET_ORDER_BY_ID } from "../../../constants/queries/paymentQueries";
 import { useSession } from 'next-auth/react';
+
+const RECORD_PROMOTION_USAGE = gql`
+  mutation RecordPromotionUsage(
+    $promotionId: ID!
+    $userId: ID!
+    $orderId: ID!
+    $discountApplied: Float!
+    $orderTotal: Float!
+  ) {
+    recordPromotionUsage(
+      promotionId: $promotionId
+      userId: $userId
+      orderId: $orderId
+      discountApplied: $discountApplied
+      orderTotal: $orderTotal
+    ) {
+      id
+      usesCount
+    }
+  }
+`;
 
 interface PaymentSuccessPageProps {
   orderId: string;
@@ -17,6 +39,50 @@ const PaymentSuccessPage: React.FC<PaymentSuccessPageProps> = ({ orderId }) => {
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [countdown, setCountdown] = useState(5);
+
+  // Promotion usage recording mutation
+  const [recordPromotionUsage] = useMutation(RECORD_PROMOTION_USAGE, {
+    onCompleted: () => {
+      console.log('Promotion usage recorded successfully');
+    },
+    onError: (error) => {
+      console.error('Error recording promotion usage:', error);
+    }
+  });
+
+  // Record promotion usage if pending
+  useEffect(() => {
+    if (orderId && status === 'authenticated') {
+      // Check if there's pending promotion usage to record
+      const pendingPromotion = localStorage.getItem('pendingPromotionUsage');
+      
+      if (pendingPromotion) {
+        try {
+          const promotionData = JSON.parse(pendingPromotion);
+          
+          // Record the promotion usage
+          recordPromotionUsage({
+            variables: {
+              promotionId: promotionData.promotionId,
+              userId: promotionData.userId,
+              orderId: orderId,
+              discountApplied: promotionData.discountApplied,
+              orderTotal: promotionData.orderTotal
+            }
+          }).then(() => {
+            // Clear the pending promotion data after successful recording
+            localStorage.removeItem('pendingPromotionUsage');
+          }).catch((error) => {
+            console.error('Failed to record promotion usage:', error);
+            // Keep the data for potential retry later
+          });
+        } catch (error) {
+          console.error('Error parsing pending promotion data:', error);
+          localStorage.removeItem('pendingPromotionUsage');
+        }
+      }
+    }
+  }, [orderId, status, recordPromotionUsage]);
 
   if (status === 'loading') {
     return (

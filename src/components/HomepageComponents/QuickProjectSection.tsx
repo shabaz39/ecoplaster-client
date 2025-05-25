@@ -52,7 +52,7 @@ const HomepageCalculatorSection: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <Calculator className="w-5 h-5 text-newgreen mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700">Every 40 sq.ft = 1 packet of EcoPlaster</span>
+                <span className="text-gray-700">Every 45 sq.ft = 1 packet of EcoPlaster</span>
               </li>
               <li className="flex items-start gap-2">
                 <Calculator className="w-5 h-5 text-newgreen mt-0.5 flex-shrink-0" />
@@ -92,13 +92,13 @@ const HomepageCalculatorSection: React.FC = () => {
           <div className="bg-white border border-green-200 rounded-lg p-5 shadow-sm">
             <h4 className="font-bold text-gray-800 mb-2">Medium Room</h4>
             <p className="text-sm text-gray-600 mb-3">Approximately 180 sq.ft (12×15 ft)</p>
-            <div className="text-lg font-bold text-newgreen">≈ 5 packets</div>
+            <div className="text-lg font-bold text-newgreen">≈ 4 packets</div>
           </div>
           
           <div className="bg-white border border-green-200 rounded-lg p-5 shadow-sm">
             <h4 className="font-bold text-gray-800 mb-2">Large Room</h4>
             <p className="text-sm text-gray-600 mb-3">Approximately 300 sq.ft (15×20 ft)</p>
-            <div className="text-lg font-bold text-newgreen">≈ 8 packets</div>
+            <div className="text-lg font-bold text-newgreen">≈ 7 packets</div>
           </div>
         </div>
         

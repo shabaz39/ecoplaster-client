@@ -573,7 +573,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, onCanc
 
             <div>
               <label htmlFor="images.imageSecondLivingRoom" className="block text-xs font-medium text-gray-700">
-                Living Room Image URL
+                Second Living Room Image URL
               </label>
               <input
                 type="text"
