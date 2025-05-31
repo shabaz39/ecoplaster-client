@@ -5,17 +5,16 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 const stores = [
-  { city: "Tirupati", stores: "1 STORE", icon: "/store-icon-1.png" },
-  { city: "Bengaluru", stores: "1 STORE", icon: "/store-icon-2.png" },
-  { city: "Kakinada", stores: "1 STORE", icon: "/store-icon-3.png" },
-  { city: "Calicut", stores: "1 STORE", icon: "/store-icon-4.png" },
-  { city: "Deoli", stores: "1 STORE", icon: "/store-icon-5.png" },
-  { city: "Bhubaneshwar", stores: "1 STORE", icon: "/store-icon-6.png" },
-  { city: "Ambala", stores: "1 STORE", icon: "/store-icon-7.png" },
-  { city: "Hisar", stores: "1 STORE", icon: "/store-icon-8.png" },
-  { city: "Anantnag", stores: "1 STORE", icon: "/store-icon-9.png" },
-  { city: "Srinagar", stores: "1 STORE", icon: "/store-icon-9.png" },
-
+  { city: "Tirupati", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/pwfkapcqxbvvprdmp9il.png" },
+  { city: "Bengaluru", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/zxzixnpobhfm09dkakx7.png" },
+  { city: "Kakinada", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/po9yv6wgozr9sjob7rdd.png" },
+  { city: "Calicut", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/xh1xgvmx9xvyb5expwqy.png" },
+  { city: "Deoli", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/ita2ixwstereddkkay9o.png" },
+  { city: "Bhubaneshwar", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/tivni0oamfpzfoyezcnp.png" },
+  { city: "Ambala", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/xejwx66amkodqctfokla.png" },
+  { city: "Hisar", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/mxeupbnannrcjeyzvevh.png" },
+  { city: "Anantnag", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/psecf5nrnums5gwzdfqh.png" },
+  { city: "Srinagar", stores: "1 STORE", icon: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687758/psecf5nrnums5gwzdfqh.png" },
 ];
 
 const StoresSection: React.FC = () => {
@@ -43,15 +42,13 @@ const StoresSection: React.FC = () => {
 
   const visibleStores = getVisibleStores();
   const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
-  
+  const router = useRouter();
 
   const navigateTo = (path: string) => {
     setIsLoading(true); // Start loading
     setTimeout(() => {
-    router.push(path);
-  }, 500);
- 
+      router.push(path);
+    }, 500);
   };
 
   return (
@@ -59,16 +56,16 @@ const StoresSection: React.FC = () => {
       <div className="max-w-8xl mx-auto ">
         {/* Section Title */}
         <div className="flex justify-between items-center mb-4">
-        <h2 className="relative pb-2 text-2xl font-bold text-gray-800 text-left">
-        Ecoplaster Stores        
-<div className=" mt-1">
-<span className="absolute left-0 bottom-0 h-[3px] w-14 bg-newgreen rounded-md"></span>
-</div>
-        </h2>
+          <h2 className="relative pb-2 text-2xl font-bold text-gray-800 text-left">
+            Ecoplaster Stores        
+            <div className=" mt-1">
+              <span className="absolute left-0 bottom-0 h-[3px] w-14 bg-newgreen rounded-md"></span>
+            </div>
+          </h2>
 
           <button className="text-sm font-medium text-newgreen hover:underline"
-                                    onClick={() => navigateTo("/stores")}
->
+                  onClick={() => navigateTo("/stores")}
+          >
             10+ Stores &rarr;
           </button>
         </div>
@@ -94,7 +91,7 @@ const StoresSection: React.FC = () => {
                   <img
                     src={store.icon}
                     alt={store.city}
-                    className="w-12 h-12 mx-auto mb-3"
+                    className="w-12 h-12 mx-auto mb-3 object-contain"
                   />
                   <h3 className="text-sm font-bold text-gray-800">
                     {store.city}

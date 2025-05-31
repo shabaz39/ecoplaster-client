@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const rooms = [
-  { name: "Bedroom", image: "/room-bedroom.webp" },
-  { name: "Living", image: "/room-living.webp" },
-  { name: "Kitchen", image: "/room-kitchen.webp" },
-  { name: "Dining", image: "/room-dining.webp" },
-  { name: "Study", image: "/room-study.webp" },
-  { name: "Kids", image: "/room-kids.webp" },
+  { name: "Bedroom", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687357/lb7iwh7e90moshayjhsi.webp" },
+  { name: "Living", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687357/ry7yujzrgqingxxa8lkd.webp" },
+  { name: "Kitchen", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687355/dlsaymrjeystqswgdsta.webp" },
+  { name: "Dining", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687357/e6nmjpoya4hbspifpr08.webp" },
+  { name: "Study", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687358/fak0ld0yp5uc5iyolb7k.webp" },
+  { name: "Kids", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1748687355/a0pbuko04rotglciz6y6.webp" },
 ];
 
 const ShopByRooms: React.FC = () => {
