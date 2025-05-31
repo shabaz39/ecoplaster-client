@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
-import { useWishlist } from "../../context/WishlistContext"; // Import the wishlist hook
+import { useWishlist } from "../../context/WishlistContext";
 import {
   Menu,
   X,
@@ -14,6 +14,8 @@ import {
   User,
   Phone,
   BadgeIndianRupee,
+  Store,
+  Users,
 } from "lucide-react";
 import Categories from "./CategoriesHover";
 import SignupModal from "./Signup";
@@ -38,7 +40,7 @@ const Navbar: React.FC = () => {
 
   const router = useRouter();
   const { cartCount, toggleCart } = useCart();
-  const { wishlistCount } = useWishlist(); // Use the wishlist context
+  const { wishlistCount } = useWishlist();
 
   const handleDashboardRedirect = () => {
     if (session?.user?.role === "admin") {
@@ -71,20 +73,20 @@ const Navbar: React.FC = () => {
 
       <header className="bg-newgreensecond text-white shadow-md relative z-40 w-full">
         {/* Main Navbar */}
-        <div className="max-w-[2000px] w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
+        <div className="max-w-[2000px] w-full mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-3 sm:py-4">
             {/* Left Section */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={toggleMenu}
-                className="text-white hover:text-newbeige"
+                className="text-white hover:text-newbeige p-1"
                 aria-label="Toggle Menu"
               >
-                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
 
               <Link href="/">
-                <h1 className="text-xl font-bold cursor-pointer hover:text-newbeige">
+                <h1 className="text-lg sm:text-xl font-bold cursor-pointer hover:text-newbeige">
                   EcoPlaster
                 </h1>
               </Link>
@@ -96,7 +98,42 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-8">
+              {/* Mobile Navigation Icons (Visible on small screens) */}
+              <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
+                <button
+                  className="text-white hover:text-newbeige p-2"
+                  onClick={toggleSearch}
+                  aria-label="Search"
+                >
+                  <Search size={18} />
+                </button>
+
+                <button
+                  onClick={() => setIsDealerModalOpen(true)}
+                  className="text-white hover:text-newbeige p-2"
+                  aria-label="Become a Dealer"
+                >
+                  <Users size={18} />
+                </button>
+
+                <button
+                  onClick={() => navigateTo("/stores")}
+                  className="text-white hover:text-newbeige p-2"
+                  aria-label="Stores"
+                >
+                  <Store size={18} />
+                </button>
+
+                <button
+                  onClick={() => navigateTo("/contactus")}
+                  className="text-white hover:text-newbeige p-2"
+                  aria-label="Contact"
+                >
+                  <Phone size={18} />
+                </button>
+              </div>
+
               {/* Desktop Navigation */}
               <div className="hidden lg:flex items-center gap-6">
                 <button
@@ -117,36 +154,27 @@ const Navbar: React.FC = () => {
                 >
                   Bulk Orders
                 </button>
-              </div>
-
-              {/* Mobile Icons */}
-              <div className="flex items-center gap-2 sm:gap-4">
                 <button
-                  className="text-white sm:hidden hover:text-newbeige"
-                  onClick={toggleSearch}
-                  aria-label="Search"
-                >
-                  <Search size={20} />
-                </button>
-
-                <button
-                  className="text-white hover:text-newbeige hidden sm:block"
+                  className="text-white hover:text-newbeige"
                   onClick={() => navigateTo("/contactus")}
                   aria-label="Contact"
                 >
                   Call us
                 </button>
+              </div>
 
+              {/* Always Visible Icons Section */}
+              <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
                 {/* Wishlist Icon */}
                 <Link
                   href="/wishlist"
-                  className="relative text-white hover:text-newbeige transition-colors"
+                  className="relative text-white hover:text-newbeige transition-colors p-2"
                   aria-label="View your wishlist"
                 >
                   <Heart size={20} />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {wishlistCount}
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                      {wishlistCount > 99 ? '99+' : wishlistCount}
                     </span>
                   )}
                 </Link>
@@ -154,21 +182,21 @@ const Navbar: React.FC = () => {
                 {/* User Section */}
                 <div className="relative flex items-center">
                   <button
-                    className="flex items-center text-white hover:text-newbeige"
+                    className="flex items-center text-white hover:text-newbeige p-2"
                     onClick={
                       session?.user ? handleDashboardRedirect : toggleModal
                     }
                   >
                     <User size={20} />
                     {!session?.user && (
-                      <span className="ml-2 hidden sm:inline">Login</span>
+                      <span className="ml-1 hidden sm:inline text-sm">Login</span>
                     )}
                   </button>
 
                   {session?.user && (
-                    <div className="hidden sm:flex items-center space-x-2 ml-2">
+                    <div className="hidden sm:flex items-center space-x-2 ml-1">
                       {/* Truncate long names */}
-                      <span className="text-white max-w-[100px] truncate">
+                      <span className="text-white max-w-[80px] lg:max-w-[100px] truncate text-sm">
                         {session.user.name}
                       </span>
                       {isAdmin(session.user.email) ? (
@@ -192,54 +220,72 @@ const Navbar: React.FC = () => {
 
                 {/* Cart Icon */}
                 <button
-                  className="relative text-white hover:text-newbeige"
+                  className="relative text-white hover:text-newbeige p-2"
                   onClick={toggleCart}
                   aria-label="Cart"
                 >
-                  <ShoppingCart size={24} />
+                  <ShoppingCart size={22} />
                   {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {cartCount}
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                      {cartCount > 99 ? '99+' : cartCount}
                     </span>
                   )}
                 </button>
 
                 <button
-                  className="text-white hover:text-newbeige hidden sm:block"
+                  className="text-white hover:text-newbeige hidden sm:block p-2"
                   aria-label="Currency"
                 >
-                  <BadgeIndianRupee size={21} />
+                  <BadgeIndianRupee size={20} />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Mobile Search Bar */}
-          {isSearchOpen && (
-            <div className="lg:hidden px-4 pb-4">
-              <SearchBar />
-            </div>
-          )}
+          <AnimatePresence>
+            {isSearchOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="lg:hidden px-3 pb-3 overflow-hidden"
+              >
+                <SearchBar />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Categories Bar */}
           <div className="hidden sm:block border-t border-white/10 w-full">
             <Categories />
           </div>
 
-          {/* Mobile Categories */}
-          <div className="flex sm:hidden items-center overflow-x-auto no-scrollbar gap-4 px-4 py-2 border-t border-white/10">
-            {[
-              "Gold series",
-              "Silk series",
-              "Sofa",
-              "Chips series",
-              "Dual series",
-              "Cotton series",
-            ].map((item, index) => (
-              <span key={index} className="text-xs whitespace-nowrap">
-                {item}
-              </span>
-            ))}
+          {/* Mobile Categories - REMOVED */}
+
+          {/* Mobile Quick Actions Bar */}
+          <div className="flex sm:hidden items-center justify-between px-3 py-2 bg-white/5 text-xs">
+            <button
+              onClick={() => navigateTo("/bulkorders")}
+              className="text-white hover:text-newbeige"
+            >
+              Bulk Orders
+            </button>
+            <span className="text-white/60">•</span>
+            <button
+              onClick={() => navigateTo("/installationGuide")}
+              className="text-white hover:text-newbeige"
+            >
+              Installation Guide
+            </button>
+            <span className="text-white/60">•</span>
+            <button
+              onClick={() => navigateTo("/calculator")}
+              className="text-white hover:text-newbeige"
+            >
+              Calculator
+            </button>
           </div>
         </div>
       </header>
