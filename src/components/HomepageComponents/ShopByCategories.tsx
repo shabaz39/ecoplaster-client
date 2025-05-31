@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation"; // ✅ Import router
+import { useRouter } from "next/navigation";
 import { GET_SERIES_PRODUCTS } from "../../constants/queries/productQueries";
 
 const categories = [
@@ -26,14 +26,37 @@ const fallbackImages = [
   "/product1 (5).webp",
 ];
 
+// Function to extract product code number from product name and sort products
+const sortProductsByCodeNumber = (products: any[]) => {
+  return products.sort((a, b) => {
+    // Regular expression to extract different product code formats
+    const getCodeNumber = (name: string): number => {
+      // Match patterns at the END of the string like:
+      // "RED-EP 414", "WHITE-EP 418", "GREEN-EP 400"
+      // "BLUE-MC 3", "RED-G 4", "PINK-CS 7", "GREY-CC 21"
+      // Look for the pattern at the end: -[CODE] [NUMBER] or -[CODE][NUMBER]
+      const match = name.match(/-(EP|MC|G|CS|CC)[\s\-_]?(\d+(?:\.\d+)?)$/i);
+      return match ? parseFloat(match[2]) : 9999; // If no code number found, put at end
+    };
+
+    const codeNumberA = getCodeNumber(a.name);
+    const codeNumberB = getCodeNumber(b.name);
+
+    return codeNumberA - codeNumberB;
+  });
+};
+
 const CategoriesSection: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const router = useRouter(); // ✅ Initialize Next.js router
+  const router = useRouter();
 
   const { data, loading, error } = useQuery(GET_SERIES_PRODUCTS, {
     variables: { series: selectedCategory },
-    skip: !selectedCategory, // Avoid fetching if no category is selected
+    skip: !selectedCategory,
   });
+
+  // Sort products when data is available
+  const sortedProducts = data?.getSeriesProducts ? sortProductsByCodeNumber([...data.getSeriesProducts]) : [];
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
@@ -72,7 +95,7 @@ const CategoriesSection: React.FC = () => {
               <img
                 src={category.image}
                 alt={category.name}
-                className="w-full h-40 sm:h-48 object-cover object-center scale-125 transition-transform duration-300 group-hover:scale-150"
+                className="w-full h-40 sm:h-48 object-cover object-center scale-150 transition-transform duration-300 group-hover:scale-100"
               />
             </div>
             <p className="mt-2 text-center font-semibold text-gray-800">
@@ -101,7 +124,7 @@ const CategoriesSection: React.FC = () => {
           >
             <div className="flex justify-between items-center p-4 bg-newgreen shadow-md">
               <h2 className="text-lg font-bold text-white">
-                {selectedCategory}
+                {selectedCategory} - {sortedProducts.length} Products
               </h2>
               <button
                 className="text-white hover:text-newgreensecond"
@@ -114,36 +137,49 @@ const CategoriesSection: React.FC = () => {
             {/* Product Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-8">
               {loading ? (
-                <p className="text-center text-gray-600">Loading...</p>
+                <div className="col-span-full text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-newgreen mx-auto mb-2"></div>
+                  <p className="text-gray-600">Loading products...</p>
+                </div>
               ) : error ? (
-                <p className="text-center text-red-500">Error loading products</p>
-              ) : data?.getSeriesProducts.length === 0 ? (
-                <p className="text-center text-gray-500">No products found</p>
+                <div className="col-span-full text-center py-8">
+                  <p className="text-red-500">Error loading products</p>
+                  <p className="text-sm text-gray-500 mt-1">{error.message}</p>
+                </div>
+              ) : sortedProducts.length === 0 ? (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500">No products found in this category</p>
+                </div>
               ) : (
-                data?.getSeriesProducts.map((product: any, index: number) => {
+                sortedProducts.map((product: any, index: number) => {
                   const imageUrl = product.images?.imageMain || fallbackImages[index % fallbackImages.length];
                   
                   return (
                     <div 
                       key={product.id} 
-                      className="relative group cursor-pointer"
-                      onClick={() => router.push(`/productDescription/${product.id}`)} // ✅ Redirect to product page
+                      className="relative group cursor-pointer transform transition-all duration-300 hover:scale-105"
+                      onClick={() => router.push(`/productDescription/${product.id}`)}
                     >
-                      <div className="overflow-hidden rounded-lg shadow-md border-2 border-white bg-white">
+                      <div className="overflow-hidden rounded-lg shadow-md border-2 border-white bg-white hover:shadow-lg transition-shadow">
                         <img
                           src={imageUrl}
                           alt={product.name}
                           className="w-full h-24 sm:h-28 object-cover object-center transition-transform duration-300 group-hover:scale-110"
+                          loading="lazy"
                         />
                       </div>
-                      <p className="mt-2 text-center text-sm font-medium text-gray-800">
+                      <p className="mt-2 text-center text-sm font-medium text-gray-800 line-clamp-2">
                         {product.name}
                       </p>
+                      
+                      {/* Remove the badge - no longer needed */}
                     </div>
                   );
                 })
               )}
             </div>
+
+        
           </motion.div>
         </>
       )}
