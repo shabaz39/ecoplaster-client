@@ -373,20 +373,6 @@ const InstallationGuide = () => {
                       <h3 className="text-xl font-bold text-gray-800 mb-2">{step.title}</h3>
                       <p className="text-gray-600 mb-4 text-lg">{step.description}</p>
                       
-                      {/* Pro Tips */}
-                      <div className="bg-green-50 border-l-4 border-newgreen p-4 rounded">
-                        <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                          <span>💡</span> Pro Tips:
-                        </h4>
-                        <ul className="space-y-2">
-                          {step.tips.map((tip, tipIndex) => (
-                            <li key={tipIndex} className="flex items-start">
-                              <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                              <span>{tip}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -568,18 +554,18 @@ const InstallationGuide = () => {
       {/* Technical Support */}
       <section className="py-16 px-4 bg-newgreen text-white">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4">📞 Need Additional Help?</h2>
+          <h2 className="text-3xl font-bold mb-4"> Need Additional Help? - 📞8790 5050 42</h2>
           <p className="text-lg mb-8">
             Our technical support team is available to assist with installation questions
             and provide guidance for your EcoPlaster project.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:9492991123"
+              href="tel:8790505042"
               className="px-6 py-3 bg-white text-newgreen font-bold rounded-lg hover:bg-beige transition-colors flex items-center justify-center gap-2"
             >
               <HelpCircle size={20} />
-              Call Support: 9492991123
+              Call Support: 8790 5050 42
             </a>
           </div>
         </div>

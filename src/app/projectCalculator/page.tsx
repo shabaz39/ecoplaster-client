@@ -38,10 +38,10 @@ export default function CalculatorSimplifiedPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a 
-                  href="tel:9492991123" 
+                  href="tel:8790505042" 
                   className="px-6 py-3 bg-newgreen text-white font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-newgreensecond transition-colors"
                 >
-                  Call: 9492991123
+                  Call: 8790 5050 42
                 </a>
               
               </div>

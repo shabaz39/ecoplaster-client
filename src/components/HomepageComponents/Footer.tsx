@@ -8,8 +8,8 @@ const Footer: React.FC = () => {
   const socialLinks = [
     { name: "Facebook", icon: Facebook, href: "https://facebook.com/ecoplaster1" }, // Replace with your URL
      { name: "Instagram", icon: Instagram, href: "https://instagram.com/ecoplaster1" }, // Replace with your URL
-     { name: "YouTube", icon: Youtube, href: "https://youtube.com/Ecoplaster1" }, // Replace with your URL
-    { name: "WhatsApp", icon: MessageCircle, href: "https://wa.me/919492991123" }, // Replace with your WhatsApp number link
+     { name: "YouTube", icon: Youtube, href: "https://youtube.com/@ecoplaster1?si=yfuK7_zvVnDUPQ3m" }, // Replace with your URL
+    { name: "WhatsApp", icon: MessageCircle, href: "https://wa.me/918790505042" }, // Replace with your WhatsApp number link
   ];
   return (
     <footer className="relative">
