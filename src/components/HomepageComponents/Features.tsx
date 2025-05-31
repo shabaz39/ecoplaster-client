@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Shield, Leaf, Droplet, Wind, Zap, PenTool, Flame, Volume2, Thermometer, Umbrella, Wifi, Heart, Sparkles } from "lucide-react";
+import { Shield, Leaf, Droplet, Wind, Zap, PenTool, Flame, Volume2, Thermometer, Umbrella, Wifi, Heart, Sparkles, Palette, Home } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { motion } from "framer-motion";
@@ -124,34 +124,179 @@ const FeaturePage = () => {
     <div className="bg-beige min-h-screen">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="relative py-20 bg-newgreensecond text-white">
+      {/* Hero Section with Animated Banner */}
+      <section className="relative py-20 bg-newgreensecond text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <img 
-            src="/feature-bg.webp" 
-            alt="Features Background" 
-            className="w-full h-full object-cover"
-          />
+          
         </div>
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Features of <span className="text-beige">EcoPlaster</span>
-          </h1>
-          <p className="text-lg md:text-xl max-w-3xl mx-auto">
-            EcoPlaster is a revolutionary wall finish that combines sustainability, durability, and aesthetic appeal. 
-            Unlike conventional paints and synthetic plasters, it is made from natural materials, ensuring a healthier living space.
-          </p>
-          <div className="mt-6">
-            <motion.div 
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block"
-            >
-              <Sparkles className="h-10 w-10 text-beige mx-auto" />
-            </motion.div>
+        
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full opacity-30 animate-pulse"></div>
+          <div className="absolute top-32 right-20 w-16 h-16 bg-white/15 rounded-full opacity-40 animate-bounce"></div>
+          <div className="absolute bottom-20 left-32 w-24 h-24 bg-white/10 rounded-full opacity-25 animate-pulse"></div>
+          <div className="absolute bottom-32 right-10 w-18 h-18 bg-white/15 rounded-full opacity-30 animate-bounce"></div>
+          
+          {/* Floating Icons */}
+          <div className="absolute top-16 left-1/4 animate-float">
+            <Leaf className="w-8 h-8 text-white/40" />
+          </div>
+          <div className="absolute top-24 right-1/3 animate-float-delayed">
+            <Sparkles className="w-6 h-6 text-white/50" />
+          </div>
+          <div className="absolute bottom-28 left-1/3 animate-float">
+            <Shield className="w-7 h-7 text-white/45" />
+          </div>
+          <div className="absolute bottom-16 right-1/4 animate-float-delayed">
+            <Home className="w-6 h-6 text-white/40" />
           </div>
         </div>
+
+        <div className="container mx-auto px-4 relative z-10 text-center">
+          {/* Main Title */}
+          <div className="mb-6">
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+              className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-beige to-white mb-4"
+            >
+              EcoPlaster
+            </motion.h1>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: "4rem" }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="h-1 bg-gradient-to-r from-white to-beige rounded-full"
+              ></motion.div>
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              >
+                <Palette className="w-8 h-8 text-beige" />
+              </motion.div>
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: "4rem" }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="h-1 bg-gradient-to-r from-beige to-white rounded-full"
+              ></motion.div>
+            </div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="text-2xl md:text-4xl font-semibold text-beige"
+            >
+              Features & Benefits
+            </motion.h2>
+          </div>
+
+          {/* Subtitle */}
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.6 }}
+            className="text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed"
+          >
+            EcoPlaster is a revolutionary wall finish that combines sustainability, durability, and aesthetic appeal. 
+            Unlike conventional paints and synthetic plasters, it is made from 
+            <span className="text-beige font-semibold"> natural materials</span>, ensuring a 
+            <span className="text-beige font-semibold"> healthier living space</span>.
+          </motion.p>
+
+          {/* Feature Highlights */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Leaf className="w-6 h-6 text-beige" />
+              </div>
+              <h3 className="font-semibold text-white text-sm">Eco-Friendly</h3>
+              <p className="text-xs text-beige/80 mt-1">100% Natural</p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.9 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Palette className="w-6 h-6 text-beige" />
+              </div>
+              <h3 className="font-semibold text-white text-sm">148+ Shades</h3>
+              <p className="text-xs text-beige/80 mt-1">Endless Options</p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.0 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Shield className="w-6 h-6 text-beige" />
+              </div>
+              <h3 className="font-semibold text-white text-sm">Multi-Protection</h3>
+              <p className="text-xs text-beige/80 mt-1">Heat & Fire Resistant</p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.1 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-white/20"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Home className="w-6 h-6 text-beige" />
+              </div>
+              <h3 className="font-semibold text-white text-sm">Premium Finish</h3>
+              <p className="text-xs text-beige/80 mt-1">Designer Look</p>
+            </motion.div>
+          </div>
+
+          {/* Call to Action */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.2 }}
+            className="mt-6"
+          >
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-beige/80 to-white/80 text-newgreensecond px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 cursor-pointer backdrop-blur-sm">
+              <Sparkles className="w-5 h-5" />
+              Explore All Features Below
+              <Sparkles className="w-5 h-5" />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Custom CSS for animations */}
+        <style jsx>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          
+          @keyframes float-delayed {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+          }
+          
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+          
+          .animate-float-delayed {
+            animation: float-delayed 8s ease-in-out infinite;
+          }
+        `}</style>
       </section>
 
       {/* Features Grid */}
@@ -226,17 +371,17 @@ const FeaturePage = () => {
             Perfect for homes, offices, and commercial spaces, it offers a healthier and more efficient alternative to traditional wall coatings.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-  <Link href="/allproducts">
-    <button className="px-6 py-3 bg-white text-newgreen font-bold rounded-lg hover:bg-beige transition-colors">
-      View Products
-    </button>
-  </Link>
-  <Link href="/stores">
-    <button className="px-6 py-3 bg-newgreensecond text-white font-bold rounded-lg hover:bg-green-800 transition-colors">
-      Contact a Dealer
-    </button>
-  </Link>
-</div>
+            <Link href="/allproducts">
+              <button className="px-6 py-3 bg-white text-newgreen font-bold rounded-lg hover:bg-beige transition-colors">
+                View Products
+              </button>
+            </Link>
+            <Link href="/stores">
+              <button className="px-6 py-3 bg-newgreensecond text-white font-bold rounded-lg hover:bg-green-800 transition-colors">
+                Contact a Dealer
+              </button>
+            </Link>
+          </div>
         </div>
       </section>
 

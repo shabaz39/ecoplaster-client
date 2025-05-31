@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, HelpCircle, PlayCircle, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ArrowRight, HelpCircle, PlayCircle, Download, ChevronDown, ChevronUp, Droplets, Paintbrush, Wrench, Sparkles, Settings } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Link from "next/link";
@@ -15,205 +15,289 @@ const InstallationGuide = () => {
     setExpandedFaq(expandedFaq === index ? null : index);
   };
 
-  // Installation steps with detailed instructions
+  // Installation steps with simplified instructions
   const installationSteps = {
     preparation: [
       {
-        title: "Surface Inspection",
-        description: "Check the wall surface for damages, cracks, or uneven areas. Repair any damages and ensure the wall is structurally sound before proceeding.",
+        title: "Clean the Wall",
+        description: "Clean the wall to remove dust, grease, or loose particles",
+        icon: "🧹",
         tips: [
-          "Use a flashlight at an angle to spot minor imperfections",
-          "Mark problem areas with painter's tape for easy identification"
+          "Use a damp cloth or brush to remove all dirt and debris",
+          "Make sure the surface is completely dry before proceeding",
+          "Check for any holes or cracks that need filling"
         ]
       },
       {
-        title: "Surface Cleaning",
-        description: "Thoroughly clean the surface to remove dust, dirt, grease, and any loose particles. The surface must be completely clean for proper adhesion.",
+        title: "Apply White Primer",
+        description: "Apply one coat of white primer (no putty or paint required)",
+        icon: "🎨",
         tips: [
-          "Use a mild detergent solution for general cleaning",
-          "For grease or oils, use a degreasing agent",
-          "Allow the surface to dry completely before proceeding"
+          "Use a quality white primer suitable for your wall type",
+          "Apply evenly with a brush or roller",
+          "Ensure complete coverage of the entire surface"
         ]
       },
       {
-        title: "Surface Leveling",
-        description: "Fill any holes, cracks, or uneven areas with appropriate patching compound. Sand the patches smooth once dry.",
+        title: "Let Primer Dry",
+        description: "Let the primer dry completely (6–8 hours)",
+        icon: "⏰",
         tips: [
-          "Use a high-quality patching compound appropriate for your wall type",
-          "For large repairs, consider using fiberglass mesh tape for reinforcement",
-          "Sand in circular motions for best results"
-        ]
-      },
-      {
-        title: "Primer Application",
-        description: "Apply EcoPlaster Primer to the entire surface using a roller or brush. This improves adhesion and ensures uniform absorption of the plaster.",
-        tips: [
-          "Use a primer specifically designed for plaster applications",
-          "Apply in thin, even coats",
-          "Allow primer to dry completely (typically 12-24 hours) before applying plaster"
+          "Avoid touching the wall during drying time",
+          "Ensure good ventilation for faster drying",
+          "Check that primer is completely dry before proceeding"
         ]
       }
     ],
     mixing: [
       {
-        title: "Gather Materials",
-        description: "Prepare a clean mixing container, clean water, mixing paddle, and the appropriate EcoPlaster product for your project.",
+        title: "Prepare Clean Bucket",
+        description: "Use a clean bucket for mixing",
+        icon: "🪣",
         tips: [
-          "Use a container at least twice the volume of the material you're mixing",
-          "Ensure all tools are clean and free from old plaster residue",
-          "Have everything ready before opening the EcoPlaster package"
+          "Ensure the bucket is completely clean and dry",
+          "Use a bucket large enough to mix comfortably",
+          "Have all materials ready before starting"
         ]
       },
       {
-        title: "Measure Water",
-        description: "Add the recommended amount of clean, room-temperature water to your mixing container (approximately 6-7 liters per 20kg box, check product packaging for exact ratios).",
+        title: "Add Hot Water",
+        description: "Add 5 litres of mineral hot water per Packet",
+        icon: "💧",
         tips: [
-          "Use a measuring container for precise water amounts",
-          "Water temperature should be between 15-25°C (59-77°F)",
-          "Using too much water will weaken the final product"
-        ]
-      },
-      {
-        title: "Add EcoPlaster",
-        description: "Gradually add the EcoPlaster powder to the water while mixing slowly to avoid lumps.",
-        tips: [
-          "Add powder to water, not water to powder",
-          "Add the material in portions, mixing each addition thoroughly",
-          "Avoid creating dust clouds by adding the powder gently"
+          "Use clean, mineral hot water for best results",
+          "Measure water accurately - 5 litres per 20kg packet",
+          "Water temperature should be warm but not boiling"
         ]
       },
       {
         title: "Mix Thoroughly",
-        description: "Mix for 3-5 minutes until you achieve a smooth, homogeneous, lump-free consistency. Use a low-speed mechanical mixer for best results.",
+        description: "Mix thoroughly by hand until it becomes a thick paste",
+        icon: "🥄",
         tips: [
-          "Mix at low speed (400-600 RPM) to avoid air bubbles",
-          "Scrape the sides and bottom of the container during mixing",
-          "The mixture should be creamy and easy to spread, but not runny"
+          "Mix slowly to avoid creating air bubbles",
+          "Continue mixing until completely smooth",
+          "Ensure no lumps remain in the mixture"
         ]
       },
       {
-        title: "Let Stand",
-        description: "Allow the mixed plaster to stand for 5-10 minutes (slaking time). This activates the ingredients and improves workability.",
+        title: "Rest the Mixture",
+        description: "Let the mixture rest for a minimum of 2 hours or up to 8 hours before applying",
+        icon: "⏱️",
         tips: [
-          "Cover the mixture during standing time to prevent skin formation",
-          "Briefly remix for 30 seconds after standing",
-          "Do not add more water after the standing period"
+          "Cover the mixture to prevent skin formation",
+          "This resting time improves workability",
+          "Stir briefly before application if needed"
         ]
       }
     ],
     application: [
       {
-        title: "Test Application",
-        description: "Apply a small test area to ensure proper consistency and appearance before proceeding with the entire surface.",
+        title: "Choose Your Tool",
+        description: "Use an acrylic trowel or flat steel trowel",
+        icon: "🔧",
         tips: [
-          "Choose an inconspicuous area for testing",
-          "This step helps confirm your technique and material consistency"
+          "Acrylic trowels are easier for beginners",
+          "Steel trowels give smoother finishes",
+          "Ensure tools are clean and in good condition"
         ]
       },
       {
-        title: "First Coat Application",
-        description: "Using a clean stainless steel trowel, apply the first coat of EcoPlaster in upward strokes with firm pressure. Aim for a thickness of 1-2mm.",
+        title: "Apply Evenly",
+        description: "Start applying evenly from bottom to top or top to bottom",
+        icon: "📏",
         tips: [
-          "Hold the trowel at approximately a 15-30° angle to the wall",
-          "Work in small sections of about 1 square meter at a time",
-          "Maintain a wet edge by working continuously across the surface"
+          "Choose one direction and stick to it",
+          "Work in manageable sections",
+          "Maintain consistent pressure throughout"
         ]
       },
       {
-        title: "Allow Partial Drying",
-        description: "Let the first coat dry partially, typically 1-2 hours depending on temperature and humidity, until it's firm but still slightly damp.",
+        title: "Maintain Thickness",
+        description: "Maintain 1–2 mm thickness for the best finish",
+        icon: "📐",
         tips: [
-          "The surface should be touch-dry but not completely hardened",
-          "Avoid applying in direct sunlight or high winds which accelerate drying",
-          "If working in sections, slightly dampen the edge of the previous section before continuing"
+          "Too thick application may crack when drying",
+          "Too thin application won't provide proper coverage",
+          "Practice on a small area first"
         ]
       },
       {
-        title: "Second Coat Application",
-        description: "Apply the second coat in a crisscross pattern (perpendicular to the first coat) for even coverage. This coat determines the final texture and appearance.",
+        title: "Gentle Coverage",
+        description: "Cover the surface gently without pressing too hard",
+        icon: "🤲",
         tips: [
-          "The second coat can be slightly thinner than the first",
-          "For smoother finishes, use less pressure and more passes",
-          "For textured finishes, use specific techniques appropriate for your chosen texture"
-        ]
-      },
-      {
-        title: "Texturing",
-        description: "While the second coat is still workable, create the desired texture using appropriate tools and techniques specific to your chosen EcoPlaster finish.",
-        tips: [
-          "For smooth finishes, use a clean trowel with light pressure",
-          "For textured finishes, use specialized tools like sponges, brushes, or combs",
-          "Practice your texturing technique on a sample board first"
+          "Let the material do the work",
+          "Excessive pressure can create uneven surfaces",
+          "Work with smooth, flowing motions"
         ]
       }
     ],
     finishing: [
       {
-        title: "Initial Drying",
-        description: "Allow the plaster to dry for at least 24-48 hours. The surface should not be touched during this period.",
+        title: "Natural Drying",
+        description: "Let it dry naturally for 12–24 hours (you can use a fan to speed up drying)",
+        icon: "🌬️",
         tips: [
-          "Maintain good ventilation but avoid direct fans or forced air",
-          "Protect from direct sunlight during initial drying",
-          "Optimum conditions are 20-25°C (68-77°F) and 50-70% relative humidity"
+          "Avoid direct sunlight during drying",
+          "Good ventilation helps even drying",
+          "Fan can be used but avoid direct airflow"
         ]
       },
       {
-        title: "Curing",
-        description: "Full curing takes approximately 7 days. During this time, the plaster reaches its full hardness and durability.",
+        title: "Avoid Touching",
+        description: "Avoid touching the wall during drying time",
+        icon: "🚫",
         tips: [
-          "Avoid water contact during the first week",
-          "No cleaning or washing during the curing period",
-          "For exterior applications, protect from rain for at least 7 days"
+          "Even light touches can leave marks",
+          "Keep children and pets away during drying",
+          "Mark the area if needed to remind others"
         ]
       },
       {
-        title: "Sealing (Optional)",
-        description: "For areas with high moisture exposure (bathrooms, kitchens), apply an appropriate sealer to enhance water resistance.",
+        title: "Enjoy Your Wall",
+        description: "Once dry, enjoy your elegant, crack-free, eco-friendly wall finish!",
+        icon: "✨",
         tips: [
-          "Use a breathable sealer specifically designed for plaster",
-          "Apply in thin, even coats with a roller or brush",
-          "Follow manufacturer recommendations for application and drying times"
+          "Your wall is now ready for use",
+          "The finish will continue to harden over time",
+          "Admire your beautiful, eco-friendly wall!"
+        ]
+      }
+    ],
+    repair: [
+      {
+        title: "Spray with Water",
+        description: "Spray the affected area with water and let it soak into the material",
+        icon: "💦",
+        tips: [
+          "Use a spray bottle for even distribution",
+          "Allow water to penetrate for 5-10 minutes",
+          "Don't oversoak - just enough to soften the material"
         ]
       },
       {
-        title: "Final Inspection",
-        description: "Examine the finished surface for any imperfections or areas that might need touch-ups.",
+        title: "Remove Damaged Area",
+        description: "Gently scrape off the damaged or stained Ecoplaster",
+        icon: "🔨",
         tips: [
-          "Inspect under various lighting conditions",
-          "Small touch-ups can be done with leftover material if needed",
-          "Take photos for warranty documentation"
+          "Use a plastic scraper to avoid wall damage",
+          "Remove only the damaged portion",
+          "Clean the area thoroughly after scraping"
+        ]
+      },
+      {
+        title: "Mix Fresh Batch",
+        description: "Mix a fresh batch of Ecoplaster as per instructions",
+        icon: "🧪",
+        tips: [
+          "Follow the same mixing ratios as original application",
+          "Mix only what you need for the repair",
+          "Ensure consistency matches existing wall"
+        ]
+      },
+      {
+        title: "Apply and Blend",
+        description: "Apply the new material smoothly to the damaged spot, blending it with the surrounding wall",
+        icon: "🎨",
+        tips: [
+          "Feather the edges to blend seamlessly",
+          "Match the texture of the surrounding area",
+          "Work quickly while material is workable"
+        ]
+      },
+      {
+        title: "Natural Drying",
+        description: "Let it dry naturally—no special treatment needed",
+        icon: "🌟",
+        tips: [
+          "Allow same drying time as original application",
+          "Avoid touching during drying process",
+          "The repair should blend invisibly when dry"
         ]
       }
     ]
   };
 
-  // FAQs about installation
+  // Updated FAQs
   const faqs = [
     {
-      question: "How long does EcoPlaster take to dry completely?",
-      answer: "EcoPlaster typically requires 24-48 hours for initial drying, depending on ambient temperature and humidity. However, full curing takes approximately 7 days. During this time, the plaster develops its full hardness and durability. It's important to maintain good ventilation during the drying period while avoiding direct fans or forced air that could cause uneven drying."
+      question: "What is Ecoplaster?",
+      answer: "Ecoplaster is a natural wall décor material made from silk and cotton material, used for interior walls and ceilings. It comes in over 148 shades and creates beautiful, textured finishes without the need for paint or putty."
     },
     {
-      question: "Can I apply EcoPlaster over existing paint or wallpaper?",
-      answer: "EcoPlaster can be applied over existing painted surfaces if the paint is in good condition, firmly adhered to the wall, and not glossy. Glossy paints should be sanded to create a rough surface for better adhesion. However, EcoPlaster should NOT be applied over wallpaper. Wallpaper must be completely removed, and the wall surface properly prepared before application."
+      question: "Why use Ecoplaster?",
+      answer: "Ecoplaster offers a premium look, is eco-friendly, hides cracks, is safe for kids and elders, and helps reduce heat and sound. It's easy to apply, long-lasting, and can be repaired easily."
     },
     {
-      question: "How much EcoPlaster do I need for my project?",
-      answer: "As a general guideline, one 20kg box of EcoPlaster covers approximately 45-50 square feet (4.2-4.6 square meters) when applied at the recommended thickness. However, coverage may vary based on surface conditions, application technique, and desired finish. For precise calculations, use our Project Cost Calculator available on our website."
+      question: "Can I apply Ecoplaster over existing paint?",
+      answer: "Yes! If you're using a similar colour, apply directly. For different shades, apply one coat of white primer before applying Ecoplaster."
     },
     {
-      question: "What tools do I need for applying EcoPlaster?",
-      answer: "Essential tools include: stainless steel trowel (various sizes), mixing paddle and drill, clean mixing containers, measuring tools, sandpaper or sanding blocks, clean water, painter's tape, drop cloths, and personal protective equipment (gloves, eye protection, dust mask). Specialized texturing tools may be required depending on your desired finish."
+      question: "Where can Ecoplaster be applied?",
+      answer: "Ecoplaster is suitable for interior walls, wooden panels, and ceilings."
     },
     {
-      question: "Is professional installation recommended for EcoPlaster?",
-      answer: "While EcoPlaster is designed to be DIY-friendly, professional installation is recommended for large areas or complex texturing techniques. Professionals have the experience, tools, and techniques to ensure optimal results. For first-time users, we recommend starting with smaller projects or hiring a professional for the best outcome."
+      question: "Is paint or putty needed before applying Ecoplaster?",
+      answer: "No, only one coat of white primer is required."
     },
     {
-      question: "How do I clean and maintain EcoPlaster walls?",
-      answer: "For routine cleaning, use a soft cloth or duster to remove dust. For occasional deeper cleaning, use a slightly damp cloth with mild soap if necessary. Avoid abrasive cleaners, scrubbing brushes, or excessive moisture. Wait at least 30 days after application before the first wet cleaning. For sealed surfaces, follow the sealer manufacturer's cleaning recommendations."
+      question: "What if tea or coffee spills on Ecoplaster walls?",
+      answer: "No worries! Simply spray water, scrape off the affected area, and reapply fresh material. It's that easy to repair."
+    },
+    {
+      question: "How long does Ecoplaster last?",
+      answer: "With proper care, it lasts 7–10 years in excellent condition."
+    },
+    {
+      question: "Do you offer a warranty?",
+      answer: "Yes, we provide a 3-year warranty on color stability and adhesion. If the material peels or fades on its own (not caused by wall issues or external damage), we will supply free replacement material during the warranty period."
+    },
+    {
+      question: "How much area does 1 packet cover?",
+      answer: "One 1 kg packet of Ecoplaster covers 45 sq. ft. Example Calculation: If your wall is 9 ft height × 9 ft length = 81 sq. ft., then: 81 ÷ 45 = approx. 2 packets needed. Use this formula: (Height × Length in ft) ÷ 45 = No. of packets required."
+    },
+    {
+      question: "Can I apply it myself (DIY)?",
+      answer: "Absolutely! Ecoplaster is DIY-friendly and can be applied with basic Trowel. We also provide video support."
+    },
+    {
+      question: "Is it child-safe and allergy-free?",
+      answer: "Yes! It's non-toxic, odourless, and hypoallergenic – safe for kids and elders."
+    },
+    {
+      question: "How do I clean Ecoplaster walls?",
+      answer: "You can dust the walls with a dry cloth or use a vacuum cleaner with a brush attachment. Avoid scrubbing or using wet cloths to maintain the finish."
+    },
+    {
+      question: "Can it hide wall cracks and imperfections?",
+      answer: "Yes! Ecoplaster is excellent for covering hairline cracks and uneven surfaces."
+    },
+    {
+      question: "Can I use Ecoplaster in the kitchen or bathroom?",
+      answer: "Yes, on dry kitchen walls. Avoid wet or splash-prone areas like inside bathrooms."
+    },
+    {
+      question: "Does it reduce heat and sound?",
+      answer: "Yes! The silk-cotton blend helps reduce room temperature and echo."
+    },
+    {
+      question: "Is it resistant to fire and water?",
+      answer: "Yes. Ecoplaster is fire-retardant and water-resistant once fully dried."
+    },
+    {
+      question: "Is Ecoplaster available across India?",
+      answer: "Yes! We ship Pan India with free shipping on all orders."
     }
   ];
+
+  const tabIcons = {
+    preparation: "🧱",
+    mixing: "🧪", 
+    application: "🎨",
+    finishing: "✨",
+    repair: "🔧"
+  };
 
   return (
     <div className="bg-beige min-h-screen text-black">
@@ -224,19 +308,15 @@ const InstallationGuide = () => {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">EcoPlaster Installation Guide</h1>
           <p className="text-lg max-w-3xl mx-auto mb-8">
-            Complete instructions for preparing, mixing, applying, and finishing your EcoPlaster project
-            for professional results.
+            Simple, step-by-step instructions for applying EcoPlaster. 
+            No putty or paint required - just primer and EcoPlaster!
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            {/* <button className="bg-white text-newgreen px-6 py-3 rounded-lg font-bold hover:bg-beige transition-colors flex items-center gap-2">
-              <Download size={20} />
-              Download PDF Guide
-            </button> */}
-            <Link href="https://res.cloudinary.com/djzmj5oqp/video/upload/v1748158343/xso18jynndv8tvdvmfmn.mp4" >
-            <button className="bg-newgreen text-white px-6 py-3 rounded-lg font-bold hover:bg-green-800 transition-colors flex items-center gap-2">
-              <PlayCircle size={20} />
-              Watch Video Tutorial
-            </button>
+            <Link href="https://res.cloudinary.com/djzmj5oqp/video/upload/v1748158343/xso18jynndv8tvdvmfmn.mp4">
+              <button className="bg-newgreen text-white px-6 py-3 rounded-lg font-bold hover:bg-green-800 transition-colors flex items-center gap-2">
+                <PlayCircle size={20} />
+                Watch Video Tutorial
+              </button>
             </Link>
           </div>
         </div>
@@ -246,24 +326,36 @@ const InstallationGuide = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl">
           {/* Tabs */}
-          <div className="flex flex-wrap border-b mb-8">
+          <div className="flex flex-wrap border-b mb-8 justify-center">
             {Object.keys(installationSteps).map((step) => (
               <button
                 key={step}
                 onClick={() => setActiveTab(step)}
-                className={`px-4 py-3 font-medium text-base capitalize transition-colors ${
+                className={`px-4 py-3 font-medium text-base capitalize transition-colors flex items-center gap-2 ${
                   activeTab === step
                     ? "border-b-2 border-newgreen text-newgreen"
                     : "text-gray-500 hover:text-gray-800"
                 }`}
               >
-                {step}
+                <span className="text-xl">{tabIcons[step as keyof typeof tabIcons]}</span>
+                {step === "repair" ? "Repair" : step}
               </button>
             ))}
           </div>
           
           {/* Step Content */}
-          <div className="space-y-10">
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3">
+                <span className="text-3xl">{tabIcons[activeTab as keyof typeof tabIcons]}</span>
+                {activeTab === "preparation" && "Preparation of Wall"}
+                {activeTab === "mixing" && "Mixing Ecoplaster Material"}
+                {activeTab === "application" && "Applying Ecoplaster"}
+                {activeTab === "finishing" && "Finishing"}
+                {activeTab === "repair" && "How to Repair Ecoplaster"}
+              </h2>
+            </div>
+
             {installationSteps[activeTab as keyof typeof installationSteps].map((step, index) => (
               <motion.div
                 key={index}
@@ -274,16 +366,18 @@ const InstallationGuide = () => {
               >
                 <div className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="bg-newgreen text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                      {index + 1}
+                    <div className="bg-newgreen text-white w-12 h-12 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-xl">
+                      {step.icon}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-xl font-bold text-gray-800 mb-2">{step.title}</h3>
-                      <p className="text-gray-600 mb-4">{step.description}</p>
+                      <p className="text-gray-600 mb-4 text-lg">{step.description}</p>
                       
                       {/* Pro Tips */}
-                      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                        <h4 className="font-bold text-gray-800 mb-2">Pro Tips:</h4>
+                      <div className="bg-green-50 border-l-4 border-newgreen p-4 rounded">
+                        <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                          <span>💡</span> Pro Tips:
+                        </h4>
                         <ul className="space-y-2">
                           {step.tips.map((tip, tipIndex) => (
                             <li key={tipIndex} className="flex items-start">
@@ -348,96 +442,88 @@ const InstallationGuide = () => {
         </div>
       </section>
       
-      {/* Installation Tips */}
+      {/* Quick Tips */}
       <section className="py-16 px-4 bg-white">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Installation Tips & Best Practices</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">🚀 Quick Application Tips</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Temperature & Humidity</h3>
-              <p className="text-gray-600 mb-4">
-                Optimal conditions for EcoPlaster application are 20-25°C (68-77°F) and 50-70% relative humidity.
-                Extreme conditions can affect drying time and final appearance.
-              </p>
-              <ul className="space-y-2">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>🌡️</span> Temperature & Timing
+              </h3>
+              <ul className="space-y-3">
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Avoid applying below 10°C (50°F) or above 35°C (95°F)</span>
+                  <span>Apply in moderate temperatures (15-30°C)</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>In hot conditions, dampen the wall slightly before application</span>
+                  <span>Let mixture rest 2-8 hours before application</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Use dehumidifiers in extremely humid environments</span>
+                  <span>Allow 12-24 hours for complete drying</span>
                 </li>
               </ul>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Working Time</h3>
-              <p className="text-gray-600 mb-4">
-                EcoPlaster remains workable for approximately 1-2 hours after mixing, depending on
-                temperature and humidity. Plan your work accordingly.
-              </p>
-              <ul className="space-y-2">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>💧</span> Water & Mixing
+              </h3>
+              <ul className="space-y-3">
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Mix only the amount you can apply within the working time</span>
+                  <span>Use exactly 5 litres hot water per packet</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Cover unused mixture with plastic wrap to extend working time</span>
+                  <span>Mix until smooth, thick paste consistency</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Never add water to hardening plaster to extend workability</span>
+                  <span>Never add extra water after mixing</span>
                 </li>
               </ul>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Tool Maintenance</h3>
-              <p className="text-gray-600 mb-4">
-                Proper tool care ensures optimal results and extends the life of your equipment.
-                Clean tools immediately after use.
-              </p>
-              <ul className="space-y-2">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>🎯</span> Application Tips
+              </h3>
+              <ul className="space-y-3">
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Clean tools with water before plaster hardens</span>
+                  <span>Maintain 1-2mm thickness throughout</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Use a stiff brush to remove residual material</span>
+                  <span>Apply gently without excessive pressure</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Store trowels flat to prevent warping</span>
+                  <span>Work in consistent direction (top to bottom or bottom to top)</span>
                 </li>
               </ul>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Surface Considerations</h3>
-              <p className="text-gray-600 mb-4">
-                Different surfaces require specific preparation techniques for optimal adhesion
-                and finish quality.
-              </p>
-              <ul className="space-y-2">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>⚠️</span> Important Don'ts
+              </h3>
+              <ul className="space-y-3">
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Use PVA primer for highly absorbent surfaces</span>
+                  <span>Don't use putty or paint before primer</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Apply bonding agent for smooth or non-porous surfaces</span>
+                  <span>Don't touch wall during drying time</span>
                 </li>
                 <li className="flex items-start">
                   <Check size={18} className="text-newgreen mt-0.5 mr-2 flex-shrink-0" />
-                  <span>Install mesh for transitioning between different materials</span>
+                  <span>Don't apply in direct sunlight or extreme weather</span>
                 </li>
               </ul>
             </div>
@@ -448,7 +534,7 @@ const InstallationGuide = () => {
       {/* FAQ Section */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-3xl">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">❓ Frequently Asked Questions</h2>
           
           <div className="space-y-4">
             {faqs.map((faq, index) => (
@@ -458,7 +544,7 @@ const InstallationGuide = () => {
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full px-6 py-4 text-left flex justify-between items-center"
+                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
                 >
                   <h3 className="font-bold text-gray-800">{faq.question}</h3>
                   {expandedFaq === index ? (
@@ -469,7 +555,7 @@ const InstallationGuide = () => {
                 </button>
                 
                 {expandedFaq === index && (
-                  <div className="px-6 py-4 border-t">
+                  <div className="px-6 py-4 border-t bg-gray-50">
                     <p className="text-gray-600">{faq.answer}</p>
                   </div>
                 )}
@@ -482,7 +568,7 @@ const InstallationGuide = () => {
       {/* Technical Support */}
       <section className="py-16 px-4 bg-newgreen text-white">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Need Additional Help?</h2>
+          <h2 className="text-3xl font-bold mb-4">📞 Need Additional Help?</h2>
           <p className="text-lg mb-8">
             Our technical support team is available to assist with installation questions
             and provide guidance for your EcoPlaster project.
@@ -495,7 +581,6 @@ const InstallationGuide = () => {
               <HelpCircle size={20} />
               Call Support: 9492991123
             </a>
- 
           </div>
         </div>
       </section>

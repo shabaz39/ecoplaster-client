@@ -51,14 +51,14 @@ export const BlogList: React.FC<BlogListProps> = ({
         const formattedDate = formatDate(blog.createdAt);
 
         return (
-          <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div key={blog.id} className="bg-white text-black rounded-lg shadow-md overflow-hidden">
             <div className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-gray-900">
                     {blog.title}
                   </h3>
-                  <div className="mt-1 flex items-center text-sm text-gray-500">
+                  <div className="mt-1 flex items-center text-sm text-black">
                     <span>{blog.author}</span>
                     <span className="mx-2">•</span>
                     <span>
