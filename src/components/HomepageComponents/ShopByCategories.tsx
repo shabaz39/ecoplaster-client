@@ -11,7 +11,7 @@ const categories = [
   { name: "SILK", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157056/ecoplaster-revised-images/EP_416/mxdsxluzecjq1fidk3r0.webp" },
   { name: "GOLD", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198412/ecoplaster-revised-images/EP_818/x95xo8we18reudast1yu.webp" },
   { name: "CHIPS", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198466/ecoplaster-revised-images/EP_381/lltwftxklauy89bdk1xs.webp" },
-  { name: "DUAL", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198495/ecoplaster-revised-images/EP_231/qxtq4lpeeidteijquvuf.webp" },
+  { name: "DUAL", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745198505/ecoplaster-revised-images/EP_209/hpx1kluumipd95h8zfly.webp" },
   { name: "COTTON", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1737901757/Product_01_kre6je.webp" },
   { name: "COTTON & SILK", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745154978/ecoplaster-revised-images/CS7/jvoxxlih7acktejlbjwq.webp" },
   { name: "GLITTER", image: "https://res.cloudinary.com/djzmj5oqp/image/upload/v1745157106/ecoplaster-revised-images/G_1/uxdscr56cuivcu4sjvba.webp" },
@@ -95,7 +95,7 @@ const CategoriesSection: React.FC = () => {
               <img
                 src={category.image}
                 alt={category.name}
-                className="w-full h-40 sm:h-48 object-cover object-center scale-150 transition-transform duration-300 group-hover:scale-100"
+                className="w-full h-40 sm:h-48 object-cover object-center scale-100 transition-transform duration-300 group-hover:scale-150"
               />
             </div>
             <p className="mt-2 text-center font-semibold text-gray-800">

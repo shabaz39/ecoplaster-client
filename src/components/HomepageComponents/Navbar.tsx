@@ -281,7 +281,7 @@ const Navbar: React.FC = () => {
             </button>
             <span className="text-white/60">•</span>
             <button
-              onClick={() => navigateTo("/calculator")}
+              onClick={() => navigateTo("/projectCalculator")}
               className="text-white hover:text-newbeige"
             >
               Calculator
