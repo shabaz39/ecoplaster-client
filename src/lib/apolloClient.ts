@@ -4,7 +4,7 @@ import fetch from "cross-fetch"; //  for server-side fetching
 import { safeId } from '../utils/safeId'; // Import the safeId utility
 import { setContext } from '@apollo/client/link/context';
 
-const API_URL = "https://ecoplaster-server-1.onrender.com/graphql" 
+const API_URL = process.env.NEXT_PUBLIC_GRAPHQL_API || "https://ecoplaster-server.netlify.app/.netlify/functions/graphql"
 
 // Create the auth link to add the token to requests
 const authLink = setContext(async (_, { headers }) => {
@@ -37,9 +37,9 @@ const authLink = setContext(async (_, { headers }) => {
 
 // Create the upload link
 const uploadLink = createUploadLink({
-    uri: `${API_URL}/graphql`,
+    uri: API_URL,
     fetch,
-    credentials: 'same-origin' // Change this from 'include' to 'same-origin'
+    credentials: 'include' // Changed to 'include' for cross-origin requests with credentials
 });
 
 // Configure cache with proper ID handling
