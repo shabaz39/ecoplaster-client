@@ -28,8 +28,8 @@
     "next": "^15.3.1",
     "next-auth": "^4.24.11",
     "papaparse": "^5.5.2",
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-dropzone": "^14.3.5",
     "react-hot-toast": "^2.5.2",
     "react-medium-image-zoom": "^5.2.13",
@@ -40,6 +40,7 @@
     "tsc": "^2.0.4"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.8.3",
     "@types/apollo-upload-client": "^18.0.0",
     "@types/lodash": "^4.17.14",
     "@types/node": "^20",
